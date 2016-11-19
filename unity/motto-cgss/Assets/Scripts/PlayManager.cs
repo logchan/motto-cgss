@@ -57,6 +57,10 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private float _lastAudioTime;
     private float _lastComputedTime;
 
+    private float _width;
+    private float _height;
+    private Matrix4x4 _originalViewportToWorldMatrix; 
+
     // Use this for initialization
     // ReSharper disable once UnusedMember.Local
     void Start ()
@@ -293,6 +297,19 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         _lineZ = CurrentGame.NotesCount + 1;
         _noteScale = SceneSettings.NoteSize / (float)SceneSettings.SpriteSize;
         _noteScaleV = new Vector3(_noteScale, _noteScale);
+
+        _width = width;
+        _height = height;
+        var magicMatrix = new Matrix4x4
+        {
+            m00 = 1,
+            m03 = -0.5f,
+            m11 = 1,
+            m13 = -0.5f,
+            m22 = 1,
+            m33 = 0.5f
+        };
+        _originalViewportToWorldMatrix = Camera.main.cameraToWorldMatrix*Camera.main.projectionMatrix.inverse*magicMatrix;
 
         // parameters for y-axis
 
