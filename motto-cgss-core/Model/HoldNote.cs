@@ -5,14 +5,6 @@ namespace motto_cgss_core.Model
 {
     public class HoldNote : Note
     {
-        #region Information
-
-        private int _endId;
-        private int _endTime;
-        private Note _endSync;
-        private int _duration;
-
-        #endregion
 
         #region Computation and Drawing
 
@@ -32,73 +24,82 @@ namespace motto_cgss_core.Model
         {
         }
 
+        // information
         public int EndBeat { get; set; }
-
         public int EndSubBeat { get; set; }
+        public int EndTime => (int)(1000 * Section.BeatToTime(EndBeat, EndSubBeat));
+        public int Duration => EndTime - Time;
 
-        public int EndTime => _endTime;
+        // relationships
+        public int EndId { get; set; }
+        public Note EndSync { get; set; }
 
-        public int EndId => _endId;
-
-        public override void GameInit()
-        {
-            base.GameInit();
-            _endNoteShown = false;
-            _endNoteHit = false;
-            _endT = 0;
-            _prevEndTimeDiff = 0;
-            _endHandle = 0;
-            _endLineHandle = 0;
-            _trailHandle = 0;
-            _holding = false;
-            _doneByInput = false;
-        }
-
-        protected override bool ShallRemoveGroupLine()
-        {
-            return _endNoteHit;
-        }
-
+        // 
         protected override int TextureId => Constants.HoldTexture;
 
-        protected override void DrawSelf()
+        #region Loading
+
+        protected override bool SelfInitialize(string[] arr, int offset)
         {
-            base.DrawSelf();
+            if (arr.Length - offset < 3)
+                return false;
 
-            if (Status == NoteStatus.Shown)
+            try
             {
-                if (_trailHandle == 0)
-                {
-                    _trailHandle = _scene.CreateLine();
-                }
-
-                var trailS = _prevEndTimeDiff >= CurrentGame.ApproachTime ? 0 : 1 - _prevEndTimeDiff / CurrentGame.ApproachTime;
-                _scene.SetLineOnPath(_trailHandle, _startPosition, _touchPosition, trailS, _t);
-
-                if (_endNoteShown)
-                {
-                    if (_endHandle == 0)
-                        _endHandle = _scene.CreateNote(TextureId, Index);
-                    _scene.SetNote(_endHandle, _startPosition, _touchPosition, _endT);
-                }
+                EndBeat = Int32.Parse(arr[offset]);
+                EndSubBeat = Int32.Parse(arr[offset + 1]);
+                EndId = Int32.Parse(arr[offset + 2]);
             }
-            else if (Status == NoteStatus.Done)
+            catch (Exception)
             {
-                Destroy(ref _endHandle);
-                Destroy(ref _trailHandle);
+                return false;
             }
+
+            return true;
         }
 
-        protected override int GetObjectHandleForGroup()
+        public override bool PostInitialize()
         {
-            return _endHandle;
+            base.PostInitialize();
+
+            if (EndId == 0)
+            {
+                // setup sync line for end
+                // here's the logic:
+                // 1. current head -- next head -> done in base, set next (base) to sync this
+                // 2. current tail -- next head -> done here, set next (base) to sync this
+                // 3. current tail -- next tail -> done here, set next (tail) to sync this
+                for (int i = Index + 1; i < _beatmap.Notes.Count; ++i)
+                {
+                    var note = _beatmap.Notes[i];
+                    if (note.Time > EndTime)
+                        break;
+
+                    if (note.IsSyncTime(EndTime))
+                    {
+                        note.SetSyncedNote(EndTime, this);
+                        break;
+                    }
+                }
+
+                return true;
+            }
+
+            if (!_beatmap.NotesMap.ContainsKey(EndId))
+                return false;
+
+            return true;
         }
+
+        #endregion
+
+        #region Sync line
 
         public override void SetSyncedNote(int time, Note note)
         {
-            if (time == _endTime)
+            if (time == EndTime)
             {
-                _endSync = note;
+                EndSync = note;
             }
             else
             {
@@ -106,14 +107,26 @@ namespace motto_cgss_core.Model
             }
         }
 
+        public override bool IsSyncTime(int time)
+        {
+            return (EndId == 0 && time == EndTime) || base.IsSyncTime(time);
+        }
+
+        public override int GetSyncedNoteHandle(int time)
+        {
+            if (EndId == 0 && time == EndTime)
+                return _endHandle;
+            return base.GetSyncedNoteHandle(time);
+        }
+
         protected override void DrawSyncLine()
         {
-            if (_prevEndTimeDiff >= 0 && _endSync != null && _endNoteShown && _endSync.Status == NoteStatus.Shown)
+            if (_prevEndTimeDiff >= 0 && EndSync != null && _endNoteShown && EndSync.Status == NoteStatus.Shown)
             {
                 if (_endLineHandle == 0)
                     _endLineHandle = _scene.CreateLine();
 
-                _scene.SetLineBetweenNotes(_endLineHandle, _endHandle, _endSync.GetSyncedNoteHandle(_endTime));
+                _scene.SetLineBetweenNotes(_endLineHandle, _endHandle, EndSync.GetSyncedNoteHandle(EndTime));
             }
 
             if (Status == NoteStatus.Done || _endNoteHit)
@@ -127,43 +140,56 @@ namespace motto_cgss_core.Model
             base.DrawSyncLine();
         }
 
-        public override bool PostInitialize()
+        #endregion
+
+        #region Group Line
+
+        protected override bool ShallRemoveGroupLine()
         {
-            base.PostInitialize();
+            return _endNoteHit;
+        }
 
-            if (_endId == 0)
+        protected override int GetObjectHandleForGroup()
+        {
+            return _endHandle;
+        }
+
+        #endregion
+
+        #region Notetype-specific behaviors
+
+        protected override void DrawSelf()
+        {
+            base.DrawSelf();
+
+            if (Status == NoteStatus.Shown)
             {
-                // setup sync line for end
-                // here's the logic:
-                // 1. current head -- next head -> done in base, set next (base) to sync this
-                // 2. current tail -- next head -> done here, set next (base) to sync this
-                // 3. current tail -- next tail -> done here, set next (tail) to sync this
-                for (int i = Index + 1; i < _beatmap.Notes.Count; ++i)
+                if (_trailHandle == 0)
                 {
-                    var note = _beatmap.Notes[i];
-                    if (note.Time > _endTime)
-                        break;
-
-                    if (note.IsSyncTime(_endTime))
-                    {
-                        note.SetSyncedNote(_endTime, this);
-                        break;
-                    }
+                    _trailHandle = _scene.CreateLine();
                 }
 
-                return true;
+                var trailS = _prevEndTimeDiff >= CurrentGame.ApproachTime ? 0 : 1 - _prevEndTimeDiff / CurrentGame.ApproachTime;
+                _scene.SetLineOnPath(_trailHandle, StartPosition, TouchPosition, trailS, _t);
+
+                if (_endNoteShown)
+                {
+                    if (_endHandle == 0)
+                        _endHandle = _scene.CreateNote(TextureId, Index);
+                    _scene.SetNote(_endHandle, StartPosition, TouchPosition, _endT);
+                }
             }
-
-            if (!_beatmap.NotesMap.ContainsKey(_endId))
-                return false;
-
-            return true;
+            else if (Status == NoteStatus.Done)
+            {
+                Destroy(ref _endHandle);
+                Destroy(ref _trailHandle);
+            }
         }
 
         protected override void HandleButton(int timeDiff)
         {
-            var state = CurrentGame.ButtonStates[_touchPosition];
-            CurrentGame.ButtonHandled[_touchPosition] = true;
+            var state = CurrentGame.ButtonStates[TouchPosition];
+            CurrentGame.ButtonHandled[TouchPosition] = true;
 
             if (timeDiff > CurrentGame.EarliestTime)
             {
@@ -178,7 +204,7 @@ namespace motto_cgss_core.Model
                     NoteHit = true;
                     _hitTime = CurrentGame.Time;
                     CurrentGame.SeToPlay |= HitsoundId;
-                    _scene.SetButtonHit(_touchPosition);
+                    _scene.SetButtonHit(TouchPosition);
                     _scene.AddNoteResult(Id, timeDiff);
                     _holding = true;
                 }
@@ -193,19 +219,21 @@ namespace motto_cgss_core.Model
             {
                 if (state != ButtonState.Hold)
                 {
-                    if (timeDiff + _duration < CurrentGame.MissTime)
+                    if (timeDiff + Duration < CurrentGame.MissTime)
                     {
                         // release in time
                         NoteHit = true;
                         _hitTime = CurrentGame.Time;
-                        CurrentGame.SeToPlay |= HitsoundId;
-                        _scene.SetButtonHit(_touchPosition);
 
-                        if (_endId == 0)
-                            _scene.AddNoteResult(Id, timeDiff + _duration);
-
+                        if (EndId == 0)
+                        {
+                            CurrentGame.SeToPlay |= HitsoundId;
+                            _scene.SetButtonHit(TouchPosition);
+                            _scene.AddNoteResult(Id, timeDiff + Duration);
+                        }
+                            
                         if (state != ButtonState.None)
-                            CurrentGame.ButtonHandled[_touchPosition] = false;
+                            CurrentGame.ButtonHandled[TouchPosition] = false;
                     }
                     else
                     {
@@ -216,7 +244,7 @@ namespace motto_cgss_core.Model
                     _doneByInput = true;
                     Status = NoteStatus.Done;
                 }
-                else if (timeDiff+_duration < -CurrentGame.MissTime)
+                else if (timeDiff + Duration < -CurrentGame.MissTime)
                 {
                     // release too late
                     _doneByInput = true;
@@ -235,12 +263,12 @@ namespace motto_cgss_core.Model
                 Status = NoteStatus.Shown;
             }
 
-            int endTimeDiff = _endTime - CurrentGame.Time;
+            int endTimeDiff = EndTime - CurrentGame.Time;
             if (endTimeDiff < CurrentGame.ApproachTime)
             {
                 _endT = MathHelper.Clamp(1 - endTimeDiff / CurrentGame.ApproachTime, 0, 1);
 
-                if (_endId == 0)
+                if (EndId == 0)
                 {
                     _endNoteShown = true;
 
@@ -248,15 +276,18 @@ namespace motto_cgss_core.Model
                     {
                         if (endTimeDiff <= 0 && _prevEndTimeDiff > 0)
                         {
-                            CurrentGame.SeToPlay |= HitsoundId;
-                            _scene.SetButtonHit(_touchPosition);
+                            if (EndId == 0)
+                            {
+                                CurrentGame.SeToPlay |= HitsoundId;
+                                _scene.SetButtonHit(TouchPosition);
+                            }
                             _scene.AddNoteResult(Id, endTimeDiff);
                         }
                     }
                 }
                 else
                 {
-                    _endNoteHit = _beatmap.NotesMap[_endId].NoteHit;
+                    _endNoteHit = _beatmap.NotesMap[EndId].NoteHit;
                 }
 
                 if (CurrentGame.AutoPlay && endTimeDiff <= -CurrentGame.NoteDelay)
@@ -269,41 +300,29 @@ namespace motto_cgss_core.Model
             FrameComputed = true;
         }
 
-        public override bool IsSyncTime(int time)
+        #endregion
+
+        #region Gameplay control
+
+        public override void GameInit()
         {
-            return (_endId == 0 && time == _endTime) || base.IsSyncTime(time);
+            base.GameInit();
+            _endNoteShown = false;
+            _endNoteHit = false;
+            _endT = 0;
+            _prevEndTimeDiff = 0;
+            _endHandle = 0;
+            _endLineHandle = 0;
+            _trailHandle = 0;
+            _holding = false;
+            _doneByInput = false;
         }
 
-        public override int GetSyncedNoteHandle(int time)
-        {
-            if (_endId == 0 && time == _endTime)
-                return _endHandle;
-            return base.GetSyncedNoteHandle(time);
-        }
-
-        protected override bool SelfInitialize(string[] arr, int offset)
-        {
-            if (arr.Length - offset < 3)
-                return false;
-
-            int beat;
-            int subBeat;
-            if (!Int32.TryParse(arr[offset], out beat) ||
-                !Int32.TryParse(arr[offset + 1], out subBeat) ||
-                !Int32.TryParse(arr[offset + 2], out _endId))
-                return false;
-
-            EndBeat = beat;
-            EndSubBeat = subBeat;
-            _endTime = _beatmap.Info.BeatToTime(beat, subBeat);
-            _duration = _endTime - _time;
-
-            return true;
-        }
+        #endregion
 
         public override string ToString()
         {
-            return $"{base.ToString()},{EndBeat},{EndSubBeat},{_endId}";
+            return $"{base.ToString()},{EndBeat},{EndSubBeat},{EndId}";
         }
     }
 }

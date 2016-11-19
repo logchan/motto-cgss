@@ -10,8 +10,8 @@ namespace motto_cgss_core.Model
 
         protected override void HandleButton(int timeDiff)
         {
-            var state = CurrentGame.ButtonStates[_touchPosition];
-            CurrentGame.ButtonHandled[_touchPosition] = true;
+            var state = CurrentGame.ButtonStates[TouchPosition];
+            CurrentGame.ButtonHandled[TouchPosition] = true;
 
             if (timeDiff > CurrentGame.EarliestTime)
             {
@@ -25,7 +25,7 @@ namespace motto_cgss_core.Model
                 NoteHit = true;
                 _hitTime = CurrentGame.Time;
                 CurrentGame.SeToPlay |= HitsoundId;
-                _scene.SetButtonHit(_touchPosition);
+                _scene.SetButtonHit(TouchPosition);
                 _scene.AddNoteResult(Id, timeDiff);
 
                 Status = NoteStatus.Done;

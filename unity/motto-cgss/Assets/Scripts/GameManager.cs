@@ -103,7 +103,8 @@ public static class GameManager
 
                 foreach (var bmFile in diffFiles)
                 {
-                    var bm = new Beatmap(info, File.ReadAllLines(bmFile));
+                    var bm = new Beatmap(info);
+                    bm.Parse(File.ReadAllLines(bmFile));
                     _beatmaps[info].Add(bm);
                 }
             }

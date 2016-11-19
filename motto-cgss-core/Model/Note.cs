@@ -5,18 +5,7 @@ namespace motto_cgss_core.Model
 {
     public abstract class Note
     {
-        #region Information
-
         protected Beatmap _beatmap;
-        protected int _id;
-        protected int _startPosition;
-        protected int _time;
-        protected int _touchPosition;
-        protected Note _syncedNote;
-        protected int _groupedNoteId;
-        protected Note _groupedNote;
-
-        #endregion
 
         #region Computation and Drawing
 
@@ -37,55 +26,32 @@ namespace motto_cgss_core.Model
             Status = NoteStatus.NotShown;
         }
 
-        public int Id => _id;
-
-        public Note GroupedNote => _groupedNote;
-
+        // information
+        public int Id { get; set; }
         public int TypeId { get; set; }
-
         public int Beat { get; set; }
-
         public int SubBeat { get; set; }
-
         public int Index { get; set; }
+        public int StartPosition { get; set; }
+        public int TouchPosition { get; set; }
+        public int SectionId { get; set; }
+        public BeatmapSection Section => _beatmap.Sections[SectionId];
+        public int Time => (int)(1000.0 * + Section.BeatToTime(Beat, SubBeat));
 
+        // relationships
+        public Note GroupedNote { get; set; }
+        public int GroupedNoteId { get; set; }
+        public Note SyncedNote { get; set; }
+
+        // computation
         public bool FrameComputed { get; set; }
-
-        public int StartPosition => _startPosition;
-        public int TouchPosition => _touchPosition;
-        public Note SyncedNote => _syncedNote;
-        public int Time => _time;
-
         public bool NoteHit { get; set; }
+        public NoteStatus Status { get; set; }
 
-        public NoteStatus Status { get; protected set; }
-
+        // skinning
         protected virtual int TextureId => Constants.NoteTexture;
-
         protected virtual int HitsoundId => Constants.HitSound;
 
-        public virtual void GameInit()
-        {
-            _scene = CurrentGame.Scene;
-            Status = NoteStatus.NotShown;
-            FrameComputed = false;
-            NoteHit = false;
-            _computationDrawn = false;
-            _prevTimeDiff = 0;
-            _t = 0;
-            _noteHandle = 0;
-            _lineHandle = 0;
-            _gpLineHandle = 0;
-        }
-
-        protected void Destroy(ref int handle)
-        {
-            if (handle == 0)
-                return;
-
-            _scene.Destroy(handle);
-            handle = 0;
-        }
 
         #region Loading
 
@@ -112,25 +78,22 @@ namespace motto_cgss_core.Model
                     return null;
             }
 
-            int beat;
-            int subBeat;
-
-            if (!Int32.TryParse(arr[0], out note._id) ||
-                !Int32.TryParse(arr[2], out note._startPosition) ||
-                note._startPosition >= bm.NumberOfButtons ||
-                !Int32.TryParse(arr[3], out note._touchPosition) ||
-                note._touchPosition >= bm.NumberOfButtons ||
-                !Int32.TryParse(arr[4], out beat) ||
-                !Int32.TryParse(arr[5], out subBeat) ||
-                subBeat >= 48 ||
-                !Int32.TryParse(arr[6], out note._groupedNoteId))
+            try
+            {
+                note.Id = Int32.Parse(arr[0]);
+                note.StartPosition = Int32.Parse(arr[2]);
+                note.TouchPosition = Int32.Parse(arr[3]);
+                note.SectionId = Int32.Parse(arr[4]);
+                note.Beat = Int32.Parse(arr[5]);
+                note.SubBeat = Int32.Parse(arr[6]);
+                note.GroupedNoteId = Int32.Parse(arr[7]);
+            }
+            catch (Exception)
+            {
                 return null;
+            }
 
-            note.Beat = beat;
-            note.SubBeat = subBeat;
-            note._time = bm.Info.BeatToTime(beat, subBeat);
-
-            if (!note.SelfInitialize(arr, 7))
+            if (!note.SelfInitialize(arr, 8))
                 return null;
 
             return note;
@@ -142,14 +105,14 @@ namespace motto_cgss_core.Model
             if (Index < _beatmap.Notes.Count - 1)
             {
                 var next = _beatmap.Notes[Index + 1];
-                if (next.IsSyncTime(_time))
+                if (next.IsSyncTime(Time))
                 {
-                    next.SetSyncedNote(_time, this);
+                    next.SetSyncedNote(Time, this);
                 }
             }
 
-            if (_beatmap.NotesMap.ContainsKey(_groupedNoteId))
-                _groupedNote = _beatmap.NotesMap[_groupedNoteId];
+            if (_beatmap.NotesMap.ContainsKey(GroupedNoteId))
+                GroupedNote = _beatmap.NotesMap[GroupedNoteId];
 
             return true;
         }
@@ -161,11 +124,11 @@ namespace motto_cgss_core.Model
 
         #endregion
 
-        #region Sync Line
+        #region Sync line
 
         public virtual void SetSyncedNote(int time, Note note)
         {
-            _syncedNote = note;
+            SyncedNote = note;
         }
 
         public virtual int GetSyncedNoteHandle(int time)
@@ -175,19 +138,19 @@ namespace motto_cgss_core.Model
 
         public virtual bool IsSyncTime(int time)
         {
-            return time == _time;
+            return time == Time;
         }
 
         protected virtual void DrawSyncLine()
         {
-            if (_syncedNote == null)
+            if (SyncedNote == null)
                 return;
 
-            if (!NoteHit && _syncedNote.Status == NoteStatus.Shown && Status == NoteStatus.Shown)
+            if (!NoteHit && SyncedNote.Status == NoteStatus.Shown && Status == NoteStatus.Shown)
             {
                 if (_lineHandle == 0)
                     _lineHandle = _scene.CreateLine();
-                _scene.SetLineBetweenNotes(_lineHandle, _noteHandle, _syncedNote.GetSyncedNoteHandle(_time));
+                _scene.SetLineBetweenNotes(_lineHandle, _noteHandle, SyncedNote.GetSyncedNoteHandle(Time));
             }
             else if (Status == NoteStatus.Done || NoteHit)
             {
@@ -197,7 +160,7 @@ namespace motto_cgss_core.Model
 
         #endregion
 
-        #region Group Line
+        #region Group line
 
         protected virtual int GetObjectHandleForGroup()
         {
@@ -211,7 +174,7 @@ namespace motto_cgss_core.Model
 
         protected void DrawGroupLine()
         {
-            if (_groupedNote == null)
+            if (GroupedNote == null)
                 return;
 
             if (Status == NoteStatus.Shown && !ShallRemoveGroupLine())
@@ -220,18 +183,18 @@ namespace motto_cgss_core.Model
                 if (gpHandle == 0)
                     return;
 
-                _groupedNote.DrawSelf();
+                GroupedNote.DrawSelf();
 
                 if (_gpLineHandle == 0)
                     _gpLineHandle = _scene.CreateLine();
 
-                if (_groupedNote.Status == NoteStatus.Shown)
+                if (GroupedNote.Status == NoteStatus.Shown)
                 {
-                    _scene.SetLineBetweenNotes(_gpLineHandle, gpHandle, _groupedNote.GetObjectHandleForGroup());
+                    _scene.SetLineBetweenNotes(_gpLineHandle, gpHandle, GroupedNote.GetObjectHandleForGroup());
                 }
                 else
                 {
-                    _scene.SetLineBetweenNoteAndStart(_gpLineHandle, gpHandle, _groupedNote._startPosition);
+                    _scene.SetLineBetweenNoteAndStart(_gpLineHandle, gpHandle, GroupedNote.StartPosition);
                 }
             }
             else if (Status == NoteStatus.Done || ShallRemoveGroupLine())
@@ -242,11 +205,13 @@ namespace motto_cgss_core.Model
 
         #endregion
 
+        #region Notetype-specific behaviors
+
         protected abstract void HandleButton(int timeDiff);
 
         public virtual void ComputeSelf()
         {
-            var timeDiff = _time - CurrentGame.Time;
+            var timeDiff = Time - CurrentGame.Time;
             if (timeDiff < CurrentGame.ApproachTime)
             {
                 Status = NoteStatus.Shown;
@@ -258,11 +223,11 @@ namespace motto_cgss_core.Model
                         NoteHit = true;
                         _hitTime = CurrentGame.Time;
                         CurrentGame.SeToPlay |= HitsoundId;
-                        _scene.SetButtonHit(_touchPosition);
+                        _scene.SetButtonHit(TouchPosition);
                         _scene.AddNoteResult(Id, timeDiff);
                     }
                 }
-                else if(!CurrentGame.ButtonHandled[_touchPosition])
+                else if(!CurrentGame.ButtonHandled[TouchPosition])
                 {
                     HandleButton(timeDiff);
                 }
@@ -295,9 +260,36 @@ namespace motto_cgss_core.Model
             {
                 if (_noteHandle == 0)
                     _noteHandle = _scene.CreateNote(TextureId, Index);
-                _scene.SetNote(_noteHandle, _startPosition, _touchPosition, _t);
+                _scene.SetNote(_noteHandle, StartPosition, TouchPosition, _t);
             }
             _computationDrawn = true;
+        }
+
+        #endregion
+
+        #region Gameplay control
+
+        public virtual void GameInit()
+        {
+            _scene = CurrentGame.Scene;
+            Status = NoteStatus.NotShown;
+            FrameComputed = false;
+            NoteHit = false;
+            _computationDrawn = false;
+            _prevTimeDiff = 0;
+            _t = 0;
+            _noteHandle = 0;
+            _lineHandle = 0;
+            _gpLineHandle = 0;
+        }
+
+        protected void Destroy(ref int handle)
+        {
+            if (handle == 0)
+                return;
+
+            _scene.Destroy(handle);
+            handle = 0;
         }
 
         public void ComputeNote()
@@ -318,9 +310,11 @@ namespace motto_cgss_core.Model
             DrawGroupLine();
         }
 
+        #endregion
+
         public override string ToString()
         {
-            return $"{Id},{TypeId},{_startPosition},{_touchPosition},{Beat},{SubBeat},{_groupedNoteId}";
+            return $"{Id},{TypeId},{StartPosition},{TouchPosition},{SectionId},{Beat},{SubBeat},{GroupedNoteId}";
         }
     }
 }

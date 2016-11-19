@@ -6,11 +6,31 @@ namespace motto_cgss_core.Model
 {
     public class Beatmap
     {
-        public Beatmap(BeatmapInfo info, string[] lines)
+        public Beatmap(BeatmapInfo info)
         {
-            var isNotes = false;
             Info = info;
+        }
+
+        // Information
+        public BeatmapInfo Info { get; }
+        public int NumberOfButtons { get; set; }
+        public int Offset { get; set; }
+        public string Author { get; set; }
+        public string DifficultyName { get; set; }
         
+        // Section and notes
+        public List<BeatmapSection> Sections { get; } = new List<BeatmapSection>();
+        public List<Note> Notes { get; } = new List<Note>();
+        public Dictionary<int, Note> NotesMap { get; } = new Dictionary<int, Note>();
+
+        public void Parse(string[] lines)
+        {
+            Sections.Clear();
+            Notes.Clear();
+            NotesMap.Clear();
+
+            var isNotes = false;
+
             foreach (var line in lines)
             {
                 if (line.StartsWith("#"))
@@ -46,50 +66,51 @@ namespace motto_cgss_core.Model
                         case "difficulty":
                             DifficultyName = arr[1];
                             break;
+                        case "sections":
+                            var strs = arr[1].Split('|');
+                            foreach (var sectionStr in strs)
+                            {
+                                var sectionArr = sectionStr.Split(',');
+                                if (sectionArr.Length < 2)
+                                    continue;
+
+                                double bpm, start;
+                                if (Double.TryParse(sectionArr[0], out start) &&
+                                    Double.TryParse(sectionArr[1], out bpm))
+                                {
+                                    Sections.Add(new BeatmapSection
+                                    {
+                                        Bpm = bpm,
+                                        StartTime = start,
+                                    });
+                                }
+                            }
+                            break;
                     }
                 }
                 else
                 {
                     var note = Note.ParseLine(line, this);
-                
-                    if (note != null && !_notesMap.ContainsKey(note.Id))
+
+                    if (note != null && !NotesMap.ContainsKey(note.Id))
                     {
-                        _notes.Add(note);
-                        _notesMap[note.Id] = note;
+                        Notes.Add(note);
+                        NotesMap[note.Id] = note;
                     }
                 }
             }
 
-            _notes = _notes.OrderBy(n => n.Time).ThenBy(n => n.Id).ToList();
-
-            for (int i = 0; i < _notes.Count; ++i)
+            Notes.Sort((a, b) =>
             {
-                _notes[i].Index = i;
-                _notes[i].PostInitialize();
+                var diff = a.Time - b.Time;
+                return diff != 0 ? diff : a.Id - b.Id;
+            });
+
+            for (int i = 0; i < Notes.Count; ++i)
+            {
+                Notes[i].Index = i;
+                Notes[i].PostInitialize();
             }
-
-            NotesLoaded = true;
-        }
-
-        public BeatmapInfo Info { get; private set; }
-        public int NumberOfButtons { get; private set; }
-        public int Offset { get; private set; }
-        public string Author { get; private set; }
-        public string DifficultyName { get; private set; }
-
-        public bool NotesLoaded { get; private set; }
-
-        private List<Note> _notes = new List<Note>();
-
-        public List<Note> Notes => _notes;
-
-        private Dictionary<int, Note> _notesMap = new Dictionary<int, Note>();
-
-        public Dictionary<int, Note> NotesMap => _notesMap;
-
-        public void ResetNotes()
-        {
-
         }
     }
 }

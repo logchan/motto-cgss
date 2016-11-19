@@ -43,6 +43,7 @@
     <Compile Include="CurrentGame.cs" />
     <Compile Include="Model\Beatmap.cs" />
     <Compile Include="Model\BeatmapInfo.cs" />
+    <Compile Include="Model\BeatmapSection.cs" />
     <Compile Include="Model\ButtonState.cs" />
     <Compile Include="Model\HitNote.cs" />
     <Compile Include="Model\HoldNote.cs" />
