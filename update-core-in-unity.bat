@@ -1,0 +1,1 @@
+copy /Y motto-cgss-core\bin\Release\motto-cgss-core.dll unity\motto-cgss\Assets\Core\
