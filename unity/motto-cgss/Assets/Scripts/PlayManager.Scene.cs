@@ -11,11 +11,17 @@ public partial class PlayManager
         obj.transform.position = pos;
     }
 
+    private Vector3 OriginalScreenToWorld(float x, float y, float setZ)
+    {
+        var vec = _originalViewportToWorldMatrix*new Vector4(x/_width, y/_height, 0, 1);
+        return new Vector3(vec.x/vec.w, vec.y/vec.w, setZ);
+    }
+
     private void SetObjectPos(GameObject obj, float x, float y)
     {
-        float z = obj.transform.position.z;
-        obj.transform.position = Camera.main.ScreenToWorldPoint(new Vector3(x, y, 10.0f));
-        SetZ(obj, z);
+        var z = obj.transform.position.z;
+
+        obj.transform.position = OriginalScreenToWorld(x, y, z);
     }
 
     private GameObject CreateNoteObject(int textureId, int id = 1)
