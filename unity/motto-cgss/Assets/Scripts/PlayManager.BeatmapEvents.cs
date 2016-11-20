@@ -55,6 +55,10 @@ public partial class PlayManager
                 }
 
                 break;
+            case 4:
+                _prevRotateAngle = 0;
+                Debug.Log(_prevRotateAngle);
+                break;
         }
     }
 
