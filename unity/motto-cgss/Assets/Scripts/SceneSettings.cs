@@ -5,6 +5,8 @@
         ApproachRate = 90;
     }
 
+    public const float HitStatusTime = 200;
+
     public const float SwipeThreshold = 100;
 
     public const float NoteSizeFactor = 0.1497f;

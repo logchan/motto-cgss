@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace motto_cgss_core.Model
 {
@@ -22,6 +21,7 @@ namespace motto_cgss_core.Model
         public List<BeatmapSection> Sections { get; } = new List<BeatmapSection>();
         public List<Note> Notes { get; } = new List<Note>();
         public Dictionary<int, Note> NotesMap { get; } = new Dictionary<int, Note>();
+        public List<BeatmapEvent> Events { get; } = new List<BeatmapEvent>();
 
         public void Parse(string[] lines)
         {
@@ -86,6 +86,33 @@ namespace motto_cgss_core.Model
                                 }
                             }
                             break;
+                        case "events":
+                            strs = arr[1].Split('|');
+                            foreach (var eventStr in strs)
+                            {
+                                var eventArr = eventStr.Split(',');
+                                if (eventArr.Length < 4)
+                                    continue;
+
+                                int sectionId, beat, subBeat, eventId;
+                                if (Int32.TryParse(eventArr[0], out sectionId) &&
+                                    Int32.TryParse(eventArr[1], out beat) &&
+                                    Int32.TryParse(eventArr[2], out subBeat) &&
+                                    Int32.TryParse(eventArr[3], out eventId))
+                                {
+                                    var ev = new BeatmapEvent(this, sectionId)
+                                    {
+                                        EventId = eventId,
+                                        Beat = beat,
+                                        SubBeat = subBeat
+                                    };
+
+                                    if (eventArr.Length > 4)
+                                        ev.EventArgs = eventArr[4];
+                                    Events.Add(ev);
+                                }
+                            }
+                            break;
                     }
                 }
                 else
@@ -105,6 +132,8 @@ namespace motto_cgss_core.Model
                 var diff = a.Time - b.Time;
                 return diff != 0 ? diff : a.Id - b.Id;
             });
+
+            Events.Sort((a, b) => a.Time - b.Time);
 
             for (int i = 0; i < Notes.Count; ++i)
             {

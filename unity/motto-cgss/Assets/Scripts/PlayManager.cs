@@ -147,7 +147,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             for (int i = _noteHead; i < _currentMap.Notes.Count; ++i)
             {
                 var note = _currentMap.Notes[i];
-                if (note.Status == NoteStatus.Done || note.Time < SceneSettings.SkipTime * 1000)
+                if (note.Status == NoteStatus.Done)
                     continue;
 
                 note.ComputeNote();
@@ -212,6 +212,9 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
             // play hitsound
             Hitsound();
+
+            // process events
+            ProcessEvents(CurrentGame.Time);
 
             // destroy if needed
             while (_destroyQueue.Count > 0)
@@ -410,6 +413,19 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         foreach (var note in bm.Notes)
         {
             note.GameInit();
+        }
+
+        // handle skipping
+
+        while (_noteHead < bm.Notes.Count &&
+               bm.Notes[_noteHead].Time < SceneSettings.SkipTime*1000 + CurrentGame.ApproachTime + bm.Offset)
+        {
+            ++_noteHead;
+        }
+
+        while (_bmEventHead < bm.Events.Count && bm.Events[_bmEventHead].Time < 1000*SceneSettings.SkipTime)
+        {
+            ++_bmEventHead;
         }
 
         // init audio
