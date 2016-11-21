@@ -33,17 +33,14 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private List<int> _buttonX;
     private List<GameObject> _buttonObjects;
     private int _noteHead;
-    private List<int> _buttonHitSize;
     private List<bool> _btnHasInput;
 
     private List<GameObject> _managedObjects;
     private List<float> _alphas;
     private Queue<int> _destroyQueue;
 
-    private int _currentFrameWorstResult = Int32.MaxValue;
-    private int _resultShowTime = 60;
-    private int _resultCountdown;
     private int _combo;
+    private int _currentFrameWorstResult = Int32.MaxValue;
 
     private Button _backButton;
     private Text _fpsText;
@@ -175,40 +172,9 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
                 _currentMap.Notes[i].FrameComputed = false;
             }
 
-            // set text and combo
-            if (_currentFrameWorstResult == Int32.MinValue)
-            {
-                _combo = 0;
-                _comboText.text = "";
-                _noteResultText.text = "MISS";
-                _resultCountdown = _resultShowTime;
-            }
-            else if (_currentFrameWorstResult != Int32.MaxValue)
-            {
-                if (_combo > 5)
-                    _comboText.text = String.Format("{0} combo", _combo);
-                _noteResultText.text = "PERFECT";
-                _resultCountdown = _resultShowTime;
-            }
-            _currentFrameWorstResult = Int32.MaxValue;
+            HandleResultAndCombo(CurrentGame.Time);
 
-            if (_resultCountdown > 0)
-            {
-                --_resultCountdown;
-                _noteResultText.color = new Color(1, 1, 1, _resultCountdown / (float)_resultShowTime);
-            }
-
-            // animate the buttons being hit
-            for (int i = 0; i < CurrentGame.NumberOfButtons; ++i)
-            {
-                var state = _buttonHitSize[i];
-                if (state == 0)
-                    continue;
-
-                float scale = _noteScale + _noteScale * state / SceneSettings.ButtonHitFrames / 4;
-                _buttonObjects[i].transform.localScale = new Vector3(scale, scale);
-                --_buttonHitSize[i];
-            }
+            ShowHitEffect(CurrentGame.Time);
 
             // play hitsound
             Hitsound();
@@ -332,11 +298,11 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
         _buttonX = new List<int>();
         _buttonObjects = new List<GameObject>();
-        _buttonHitSize = new List<int>();
+        _buttonHitTime = new List<int>();
         _btnHasInput = new List<bool>();
         for (int i = 0; i < bm.NumberOfButtons; ++i)
         {
-            _buttonHitSize.Add(0);
+            _buttonHitTime.Add(0);
             _btnHasInput.Add(false);
             CurrentGame.ButtonStates.Add(ButtonState.None);
             CurrentGame.ButtonHandled.Add(false);

@@ -5,7 +5,10 @@
         ApproachRate = 90;
     }
 
-    public const float HitStatusTime = 200;
+    public const float HitStatusTime = 1000;
+    public const float ButtonAnimationTime = 300;
+    public const float ComboAnimationTime = 200;
+    public const float ComboAnimationScale = 0.1f;
 
     public const float SwipeThreshold = 100;
 
@@ -13,7 +16,6 @@
     public const float ButtonYFactor = 0.15625f;
     public const float BetweenButtonsFactor = 0.11067f;
     public const float ShooterHeightFactor = 0.6181f;
-    public const int ButtonHitFrames = 10;
 
     public const int SpriteSize = 200;
     public static int NoteSize { get; set; }
