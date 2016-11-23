@@ -29,6 +29,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private volatile bool _shallStartPlay;
     private AudioClip _hitsound;
     private AudioClip _swipesound;
+    private bool _loadFailed;
 
     private List<Sprite> _noteSprites;
     private List<int> _buttonX;
@@ -97,6 +98,9 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 	// Update is called once per frame
     // ReSharper disable once UnusedMember.Local
 	void Update () {
+        if (_loadFailed)
+            return;
+
         if (_shallStartPlay && _audioClip.loadState == AudioDataLoadState.Loaded && _hitsound.loadState == AudioDataLoadState.Loaded && _swipesound.loadState == AudioDataLoadState.Loaded)
         {
             StartPlay();
@@ -219,15 +223,24 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
         if (SceneSettings.DoubleTime || SceneSettings.HalfTime)
         {
-            var origdata = new float[_audioClip.samples*_audioClip.channels];
-            _audioClip.GetData(origdata, 0);
+            try
+            {
+                var origdata = new float[_audioClip.samples * _audioClip.channels];
+                _audioClip.GetData(origdata, 0);
 
-            var channels = _audioClip.channels;
-            var freq = _audioClip.frequency;
-            var data = AudioHelper.ChangeAudioSpeed((uint)channels, (uint)freq, (float)CurrentGame.SpeedFactor, origdata);
+                var channels = _audioClip.channels;
+                var freq = _audioClip.frequency;
+                var data = AudioHelper.ChangeAudioSpeed((uint)channels, (uint)freq, (float)CurrentGame.SpeedFactor, origdata);
 
-            _audioClip = AudioClip.Create("music stretched", data.Length/channels, channels, freq, false);
-            _audioClip.SetData(data, 0);
+                _audioClip = AudioClip.Create("music stretched", data.Length / channels, channels, freq, false);
+                _audioClip.SetData(data, 0);
+            }
+            catch (Exception ex)
+            {
+                _debugText.text = String.Format("{0}" + Environment.NewLine + "{1}" + Environment.NewLine + "{2}", ex.Message, ex, ex.StackTrace);
+                _loadFailed = true;
+                return;
+            }
         }
 
         _audio.clip = _audioClip;

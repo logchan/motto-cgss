@@ -10,6 +10,8 @@ namespace Utilities
     {
         #region SoundTouch DllImport
 
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_ANDROID
+
         [DllImport("SoundTouch", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr soundtouch_createInstance();
         [DllImport("SoundTouch", CallingConvention = CallingConvention.Cdecl)]
@@ -40,6 +42,8 @@ namespace Utilities
         private static extern bool soundtouch_setSetting(IntPtr h, int settingId, int value);
         [DllImport("SoundTouch", CallingConvention = CallingConvention.Cdecl)]
         private static extern uint soundtouch_receiveSamples(IntPtr h, float[] outBuffer, uint maxSamples);
+
+#endif
 
         #endregion
 
