@@ -6,6 +6,7 @@ using motto_cgss_core;
 using motto_cgss_core.Model;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Utilities;
 
 public partial class PlayManager : MonoBehaviour, ISceneController {
 
@@ -111,13 +112,14 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
              * AudioTime   a       a        a        b    [Notes only updated at F1, fps_notes == fps / 3]
              * GameTime    a       a+d1     a+d1+d2  b    [Notes always updated, fps_notes == fps]
              */
-            if (_audio.time - _lastAudioTime < 0.001f)
+            var audioTime = _audio.time*(float)CurrentGame.SpeedFactor;
+            if (audioTime - _lastAudioTime < 0.001f)
             {
                 _lastComputedTime += Time.deltaTime;
             }
             else
             {
-                _lastAudioTime = _audio.time;
+                _lastAudioTime = audioTime;
                 _lastComputedTime = _lastAudioTime;
             }
             CurrentGame.Time = (int)(_lastComputedTime * 1000) + _currentMap.Offset;
@@ -213,9 +215,21 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         if (_isPlaying)
             return;
 
+        if (SceneSettings.DoubleTime || SceneSettings.HalfTime)
+        {
+            var origdata = new float[_audioClip.samples*_audioClip.channels];
+            _audioClip.GetData(origdata, 0);
+
+            var channels = _audioClip.channels;
+            var freq = _audioClip.frequency;
+            var data = AudioHelper.ChangeAudioSpeed((uint)channels, (uint)freq, (float)CurrentGame.SpeedFactor, origdata);
+
+            _audioClip = AudioClip.Create("music stretched", data.Length/channels, channels, freq, false);
+            _audioClip.SetData(data, 0);
+        }
+
         _audio.clip = _audioClip;
         _audio.Play();
-        _audio.pitch = (float)CurrentGame.SpeedFactor;
         _audio.time = SceneSettings.SkipTime;
         _isPlaying = true;
         _shallStartPlay = false;
@@ -251,7 +265,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         CurrentGame.ApproachTime = GameManager.ArToTime(SceneSettings.ApproachRate);
         CurrentGame.Time = 0;
         CurrentGame.SpeedFactor = SceneSettings.DoubleTime ? 1.5 : 1.0;
-        CurrentGame.SpeedFactor *= SceneSettings.HalfTime ? 0.5 : 1.0;
+        CurrentGame.SpeedFactor *= SceneSettings.HalfTime ? 0.75 : 1.0;
         CurrentGame.Scene = this;
         CurrentGame.NoteDelay = 100;
         CurrentGame.NotesCount = bm.Notes.Count;
