@@ -3,6 +3,7 @@
     static SceneSettings()
     {
         ApproachRate = 90;
+        SwipeThreshold = 0.1f;
     }
 
     public const float HitStatusTime = 1000;
@@ -10,7 +11,7 @@
     public const float ComboAnimationTime = 200;
     public const float ComboAnimationScale = 0.1f;
 
-    public const float SwipeThreshold = 100;
+    public static float SwipeThreshold { get; set; }
 
     public const float NoteSizeFactor = 0.1497f;
     public const float ButtonYFactor = 0.15625f;
@@ -20,6 +21,7 @@
     public const int SpriteSize = 200;
     public static int NoteSize { get; set; }
     public static int NoteRadius { get; set; }
+    public static float NoteRadiusNormalized { get; set; }
     public static int ButtonY { get; set; }
     public static int BetweenButtons { get; set; }
     public static int ShooterHeight { get; set; }

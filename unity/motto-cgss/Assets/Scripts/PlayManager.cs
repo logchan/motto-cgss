@@ -32,6 +32,8 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
     private List<Sprite> _noteSprites;
     private List<int> _buttonX;
+    private List<float> _buttonXNormalized;
+    private float _buttonYNormalized;
     private List<GameObject> _buttonObjects;
     private int _noteHead;
     private List<bool> _btnHasInput;
@@ -250,11 +252,15 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         var bm = GameManager.BeatmapToPlay;
         _currentMap = bm;
         _combo = 0;
+        _width = width;
+        _height = height;
 
         ////// Compute sizes
 
         SceneSettings.NoteSize = (int) (height*SceneSettings.NoteSizeFactor);
         SceneSettings.NoteRadius = SceneSettings.NoteSize/2;
+        // TODO: is this correct?
+        SceneSettings.NoteRadiusNormalized = SceneSettings.NoteRadius/_height; 
         SceneSettings.ButtonY = (int) (height * SceneSettings.ButtonYFactor);
         SceneSettings.BetweenButtons = (int) (height * SceneSettings.BetweenButtonsFactor);
         SceneSettings.ShooterHeight = (int) (height*SceneSettings.ShooterHeightFactor);
@@ -281,8 +287,6 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         _noteScale = SceneSettings.NoteSize / (float)SceneSettings.SpriteSize;
         _noteScaleV = new Vector3(_noteScale, _noteScale);
 
-        _width = width;
-        _height = height;
         var magicMatrix = new Matrix4x4
         {
             m00 = 1,
@@ -311,6 +315,8 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         var btnTexture = UnityHelper.TextureFromFile(Path.Combine(_skinPath, "touchpad.png"), SceneSettings.SpriteSize);
 
         _buttonX = new List<int>();
+        _buttonXNormalized = new List<float>();
+        _buttonYNormalized = SceneSettings.ButtonY/_height;
         _buttonObjects = new List<GameObject>();
         _buttonHitTime = new List<int>();
         _btnHasInput = new List<bool>();
@@ -324,6 +330,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             int x = notesMargin / 2 + i * (SceneSettings.BetweenButtons + SceneSettings.NoteSize) + SceneSettings.NoteSize / 2;
 
             _buttonX.Add(x);
+            _buttonXNormalized.Add(x/_width);
 
             var btn = UnityHelper.SpriteFromTexture(btnTexture);
 

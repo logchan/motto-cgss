@@ -53,21 +53,26 @@ public partial class PlayManager
 
         for (int i = 0; i < CurrentGame.NumberOfButtons; ++i)
         {
-            var x = _buttonX[i];
-            var y = SceneSettings.ButtonY;
+            var x = _buttonXNormalized[i];
+            var y = _buttonYNormalized;
 
-            var x1 = touch.position.x;
-            var y1 = touch.position.y;
-            var x2 = x1 - touch.deltaPosition.x;
-            var y2 = y1 - touch.deltaPosition.y;
+            var x1 = touch.position.x/_width;
+            var y1 = touch.position.y/_height;
+            var x2 = x1 - touch.deltaPosition.x/_width;
+            var y2 = y1 - touch.deltaPosition.y/_height;
+
+            // Debug.Log(String.Format("[{0}] Checking, x = {1}, y = {2}, touch x1 = {3}, y1 = {4}, x2 = {5}, y2 = {6}", i, x, y, x1, y1, x2, y2));
 
             // x shall be between two touch points
-            if ((x1 < x2 && x < x2 && x > x1) ||
-                (x2 < x1 && x < x1 && x > x2))
+            var xleft = x - SceneSettings.NoteRadiusNormalized;
+            var xright = x + SceneSettings.NoteRadiusNormalized;
+            if ((x1 < x2 && xleft < x2 && xright > x1) ||
+                (x2 < x1 && xleft < x1 && xright > x2))
             {
                 var dist = Mathf.Abs((y2 - y1) * x - (x2 - x1) * y + x2 * y1 - y2 * x1) /
                        Mathf.Sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
-                if (dist < SceneSettings.NoteRadius)
+                // Debug.Log(String.Format("{0} ({1})", dist, SceneSettings.NoteRadiusNormalized));
+                if (dist < SceneSettings.NoteRadiusNormalized)
                     result.Add(i);
             }
         }
@@ -79,12 +84,13 @@ public partial class PlayManager
         for (int i = 0; i < Input.touchCount; ++i)
         {
             var touch = Input.GetTouch(i);
+            var spd = Math.Abs(touch.deltaPosition.x)/Time.deltaTime/_width;
 
-            if (touch.phase != TouchPhase.Moved || Mathf.Abs(touch.deltaPosition.x)/Time.deltaTime < SceneSettings.SwipeThreshold)
+            if (touch.phase != TouchPhase.Moved || spd < SceneSettings.SwipeThreshold)
             {
                 if (touch.phase == TouchPhase.Moved)
                 {
-                    _debugText.text = (Mathf.Abs(touch.deltaPosition.x)/Time.deltaTime).ToString("N3");
+                    _debugText.text = spd.ToString("N3");
                 }
 
                 var btnId = TouchedButton(touch);
