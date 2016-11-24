@@ -411,17 +411,21 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         }
 
         // init bg
-        var bgfile = Path.Combine(bm.Info.Path, "bg.jpg");
-        if (!File.Exists(bgfile))
-            bgfile = Path.Combine(bm.Info.Path, "bg.png");
-        if (File.Exists(bgfile))
+        var bgfilenames = new[] {"bg.jpg", "bg.png", "background.jpg", "background.png"};
+        string bgfile = null;
+        foreach (var filename in bgfilenames)
+        {
+            var full = Path.Combine(bm.Info.Path, filename);
+            if (File.Exists(full))
+            {
+                bgfile = full;
+                break;
+            }
+        }
+        if (bgfile != null)
         {
             var texture = UnityHelper.TextureFromFile(bgfile, 1);
-            Debug.Log(Camera.main.ViewportToScreenPoint(new Vector3(1, 1, 10)));
-            Debug.Log(String.Format("screen width = {0}, height = {1}", _width, _height));
-            Debug.Log(String.Format("texture width = {0}, height = {1}", texture.width, texture.height));
             var scale = Math.Min(_width/texture.width, _height/texture.height);
-            Debug.Log(String.Format("computed scale = {0}", scale));
 
             _bgImage.sprite = UnityHelper.SpriteFromTexture(texture);
             _bgImage.color = new Color(1, 1, 1, 0.2f);
