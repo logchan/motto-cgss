@@ -18,6 +18,7 @@ public class SelectManager : MonoBehaviour
     private Slider _arSlider;
     private Text _arValue;
     private Toggle _autoBotToggle;
+    private InputField _swipeThresholdInput;
 
     private GameObject _songInfoPrefab;
     private GameObject _diffBtnPrefab;
@@ -26,6 +27,7 @@ public class SelectManager : MonoBehaviour
 	{
         // special: magic (for Unity test)
 	    GameObject.Find("MagicButton").GetComponent<Button>().onClick.AddListener(GotoMagic);
+	    GameObject.Find("ParamsButton").GetComponent<Button>().onClick.AddListener(GotoParameters);
 
         // set references
         _scrollRect = FindObjectOfType<ScrollRect>();
@@ -43,6 +45,7 @@ public class SelectManager : MonoBehaviour
 	    _arSlider = GameObject.Find("ArSlider").GetComponent<Slider>();
 	    _arValue = GameObject.Find("ArValue").GetComponent<Text>();
         _autoBotToggle = GameObject.Find("AutoBotToggle").GetComponent<Toggle>();
+        _swipeThresholdInput = GameObject.Find("SwipeThresholdInput").GetComponent<InputField>();
 
         // set values
         _pathText.text = GameManager.DataPath;
@@ -54,6 +57,7 @@ public class SelectManager : MonoBehaviour
         _arSlider.onValueChanged.AddListener(ArSlider);
         _arSlider.value = SceneSettings.ApproachRate / 10.0f;
 	    _autoBotToggle.isOn = SceneSettings.AutoBot;
+        _swipeThresholdInput.text = SceneSettings.SwipeThreshold.ToString("N2");
 
         // display beatmaps
         float y = -10;
@@ -66,7 +70,7 @@ public class SelectManager : MonoBehaviour
 	        titleRect.gameObject.GetComponent<Text>().text = info.Title;
 	        Debug.Assert(artistRect != null, "artistRect != null");
 	        artistRect.gameObject.GetComponent<Text>().text = info.Artist;
-	        obj.transform.position = new Vector3(30, y);
+	        obj.transform.position = new Vector3(40, y);
 	        obj.transform.SetParent(_scrollContent);
 
 	        y -= titleRect.rect.height + artistRect.rect.height + 10;
@@ -102,9 +106,12 @@ public class SelectManager : MonoBehaviour
         SceneSettings.Auto = _autoToggle.isOn;
         SceneSettings.AutoBot = _autoBotToggle.isOn;
 
-        float skip;
-        Single.TryParse(_skipInput.text, out skip);
-        SceneSettings.SkipTime = skip;
+        float tmp;
+        Single.TryParse(_skipInput.text, out tmp);
+        SceneSettings.SkipTime = tmp;
+
+        Single.TryParse(_swipeThresholdInput.text, out tmp);
+        SceneSettings.SwipeThreshold = tmp;
 
         SceneSettings.ApproachRate = (int)(_arSlider.value*10);
 
@@ -120,5 +127,10 @@ public class SelectManager : MonoBehaviour
     private void GotoMagic()
     {
         SceneManager.LoadScene("MagicScene");
+    }
+
+    private void GotoParameters()
+    {
+        SceneManager.LoadScene("ParameterScene");
     }
 }

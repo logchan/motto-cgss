@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace motto_cgss_core.Model
+﻿namespace motto_cgss_core.Model
 {
     public class BeatmapSection
     {

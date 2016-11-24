@@ -6,6 +6,7 @@ using motto_cgss_core;
 using motto_cgss_core.Model;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Utilities;
 
 public partial class PlayManager : MonoBehaviour, ISceneController {
 
@@ -17,7 +18,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
     private float _noteScale;
     private Vector3 _noteScaleV;
-    private int _lineZ;
+    private float _lineZ;
 
     private bool _isPlaying;
     private Beatmap _currentMap;
@@ -28,28 +29,30 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private volatile bool _shallStartPlay;
     private AudioClip _hitsound;
     private AudioClip _swipesound;
+    private bool _loadFailed;
 
     private List<Sprite> _noteSprites;
     private List<int> _buttonX;
+    private List<float> _buttonXNormalized;
+    private float _buttonYNormalized;
     private List<GameObject> _buttonObjects;
+    private List<Sprite> _buttonSprites;
     private int _noteHead;
-    private List<int> _buttonHitSize;
     private List<bool> _btnHasInput;
 
     private List<GameObject> _managedObjects;
     private List<float> _alphas;
     private Queue<int> _destroyQueue;
 
-    private int _currentFrameWorstResult = Int32.MaxValue;
-    private int _resultShowTime = 60;
-    private int _resultCountdown;
     private int _combo;
+    private int _currentFrameWorstResult = Int32.MaxValue;
 
     private Button _backButton;
     private Text _fpsText;
     private Text _noteResultText;
     private Text _comboText;
     private Text _debugText;
+    private SpriteRenderer _bgImage;
 
     private readonly System.Diagnostics.Stopwatch _watch = new System.Diagnostics.Stopwatch();
     private int _passedFrames;
@@ -77,6 +80,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         _noteResultText = GameObject.Find("NoteResultText").GetComponent<Text>();
         _comboText = GameObject.Find("ComboText").GetComponent<Text>();
         _debugText = GameObject.Find("DebugText").GetComponent<Text>();
+        _bgImage = GameObject.Find("BgImage").GetComponent<SpriteRenderer>();
 
         string modText = "";
         if (SceneSettings.Hidden)
@@ -97,6 +101,9 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 	// Update is called once per frame
     // ReSharper disable once UnusedMember.Local
 	void Update () {
+        if (_loadFailed)
+            return;
+
         if (_shallStartPlay && _audioClip.loadState == AudioDataLoadState.Loaded && _hitsound.loadState == AudioDataLoadState.Loaded && _swipesound.loadState == AudioDataLoadState.Loaded)
         {
             StartPlay();
@@ -114,13 +121,14 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
              * AudioTime   a       a        a        b    [Notes only updated at F1, fps_notes == fps / 3]
              * GameTime    a       a+d1     a+d1+d2  b    [Notes always updated, fps_notes == fps]
              */
-            if (_audio.time - _lastAudioTime < 0.001f)
+            var audioTime = _audio.time*(float)CurrentGame.SpeedFactor;
+            if (audioTime - _lastAudioTime < 0.001f)
             {
                 _lastComputedTime += Time.deltaTime;
             }
             else
             {
-                _lastAudioTime = _audio.time;
+                _lastAudioTime = audioTime;
                 _lastComputedTime = _lastAudioTime;
             }
             CurrentGame.Time = (int)(_lastComputedTime * 1000) + _currentMap.Offset;
@@ -147,7 +155,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             for (int i = _noteHead; i < _currentMap.Notes.Count; ++i)
             {
                 var note = _currentMap.Notes[i];
-                if (note.Status == NoteStatus.Done || note.Time < SceneSettings.SkipTime * 1000)
+                if (note.Status == NoteStatus.Done)
                     continue;
 
                 note.ComputeNote();
@@ -175,43 +183,15 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
                 _currentMap.Notes[i].FrameComputed = false;
             }
 
-            // set text and combo
-            if (_currentFrameWorstResult == Int32.MinValue)
-            {
-                _combo = 0;
-                _comboText.text = "";
-                _noteResultText.text = "MISS";
-                _resultCountdown = _resultShowTime;
-            }
-            else if (_currentFrameWorstResult != Int32.MaxValue)
-            {
-                if (_combo > 5)
-                    _comboText.text = String.Format("{0} combo", _combo);
-                _noteResultText.text = "PERFECT";
-                _resultCountdown = _resultShowTime;
-            }
-            _currentFrameWorstResult = Int32.MaxValue;
+            HandleResultAndCombo(CurrentGame.Time);
 
-            if (_resultCountdown > 0)
-            {
-                --_resultCountdown;
-                _noteResultText.color = new Color(1, 1, 1, _resultCountdown / (float)_resultShowTime);
-            }
-
-            // animate the buttons being hit
-            for (int i = 0; i < CurrentGame.NumberOfButtons; ++i)
-            {
-                var state = _buttonHitSize[i];
-                if (state == 0)
-                    continue;
-
-                float scale = _noteScale + _noteScale * state / SceneSettings.ButtonHitFrames / 4;
-                _buttonObjects[i].transform.localScale = new Vector3(scale, scale);
-                --_buttonHitSize[i];
-            }
+            ShowHitEffect(CurrentGame.Time);
 
             // play hitsound
             Hitsound();
+
+            // process events
+            ProcessEvents(CurrentGame.Time);
 
             // destroy if needed
             while (_destroyQueue.Count > 0)
@@ -244,9 +224,30 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         if (_isPlaying)
             return;
 
+        if (SceneSettings.DoubleTime || SceneSettings.HalfTime)
+        {
+            try
+            {
+                var origdata = new float[_audioClip.samples * _audioClip.channels];
+                _audioClip.GetData(origdata, 0);
+
+                var channels = _audioClip.channels;
+                var freq = _audioClip.frequency;
+                var data = AudioHelper.ChangeAudioSpeed((uint)channels, (uint)freq, (float)CurrentGame.SpeedFactor, origdata);
+
+                _audioClip = AudioClip.Create("music stretched", data.Length / channels, channels, freq, false);
+                _audioClip.SetData(data, 0);
+            }
+            catch (Exception ex)
+            {
+                _debugText.text = String.Format("{0}" + Environment.NewLine + "{1}" + Environment.NewLine + "{2}", ex.Message, ex, ex.StackTrace);
+                _loadFailed = true;
+                return;
+            }
+        }
+
         _audio.clip = _audioClip;
         _audio.Play();
-        _audio.pitch = (float)CurrentGame.SpeedFactor;
         _audio.time = SceneSettings.SkipTime;
         _isPlaying = true;
         _shallStartPlay = false;
@@ -265,16 +266,22 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private void Initialize(int width, int height)
     {
         var bm = GameManager.BeatmapToPlay;
+        var settings = GameManager.Settings;
         _currentMap = bm;
         _combo = 0;
+        _width = width;
+        _height = height;
+        var skinPaths = new[] {bm.Info.Path, _skinPath};
 
         ////// Compute sizes
 
-        SceneSettings.NoteSize = (int) (height*SceneSettings.NoteSizeFactor);
+        SceneSettings.NoteSize = (int) (height* settings.NoteSizeFactor);
         SceneSettings.NoteRadius = SceneSettings.NoteSize/2;
-        SceneSettings.ButtonY = (int) (height * SceneSettings.ButtonYFactor);
-        SceneSettings.BetweenButtons = (int) (height * SceneSettings.BetweenButtonsFactor);
-        SceneSettings.ShooterHeight = (int) (height*SceneSettings.ShooterHeightFactor);
+        // TODO: is this correct?
+        SceneSettings.NoteRadiusNormalized = SceneSettings.NoteRadius/_height; 
+        SceneSettings.ButtonY = (int) (height * settings.ButtonYFactor);
+        SceneSettings.BetweenButtons = (int) (height * settings.BetweenButtonsFactor);
+        SceneSettings.ShooterHeight = (int) (height* settings.ShooterHeightFactor);
 
         ////// Set data in CurrentGame
 
@@ -282,7 +289,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         CurrentGame.ApproachTime = GameManager.ArToTime(SceneSettings.ApproachRate);
         CurrentGame.Time = 0;
         CurrentGame.SpeedFactor = SceneSettings.DoubleTime ? 1.5 : 1.0;
-        CurrentGame.SpeedFactor *= SceneSettings.HalfTime ? 0.5 : 1.0;
+        CurrentGame.SpeedFactor *= SceneSettings.HalfTime ? 0.75 : 1.0;
         CurrentGame.Scene = this;
         CurrentGame.NoteDelay = 100;
         CurrentGame.NotesCount = bm.Notes.Count;
@@ -294,12 +301,10 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
         ////// parameters
 
-        _lineZ = CurrentGame.NotesCount + 1;
+        _lineZ = (CurrentGame.NotesCount + 1) / 4f;
         _noteScale = SceneSettings.NoteSize / (float)SceneSettings.SpriteSize;
         _noteScaleV = new Vector3(_noteScale, _noteScale);
 
-        _width = width;
-        _height = height;
         var magicMatrix = new Matrix4x4
         {
             m00 = 1,
@@ -325,15 +330,17 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             - bm.NumberOfButtons * SceneSettings.NoteSize              // total width of buttons
             - (bm.NumberOfButtons - 1) * SceneSettings.BetweenButtons; // total width between buttons
 
-        var btnTexture = UnityHelper.TextureFromFile(Path.Combine(_skinPath, "touchpad.png"), SceneSettings.SpriteSize);
+        LoadButtonSprites(bm.NumberOfButtons, skinPaths);
 
         _buttonX = new List<int>();
+        _buttonXNormalized = new List<float>();
+        _buttonYNormalized = SceneSettings.ButtonY/_height;
         _buttonObjects = new List<GameObject>();
-        _buttonHitSize = new List<int>();
+        _buttonHitTime = new List<int>();
         _btnHasInput = new List<bool>();
         for (int i = 0; i < bm.NumberOfButtons; ++i)
         {
-            _buttonHitSize.Add(0);
+            _buttonHitTime.Add(0);
             _btnHasInput.Add(false);
             CurrentGame.ButtonStates.Add(ButtonState.None);
             CurrentGame.ButtonHandled.Add(false);
@@ -341,17 +348,18 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             int x = notesMargin / 2 + i * (SceneSettings.BetweenButtons + SceneSettings.NoteSize) + SceneSettings.NoteSize / 2;
 
             _buttonX.Add(x);
+            _buttonXNormalized.Add(x/_width);
 
-            var btn = UnityHelper.SpriteFromTexture(btnTexture);
+            var btnSprite = _buttonSprites[i % _buttonSprites.Count];
 
             var obj = new GameObject();
             SetObjectPos(obj, x, SceneSettings.ButtonY);
-            SetZ(obj, CurrentGame.NotesCount); // buttons behind notes
+            SetZ(obj, CurrentGame.NotesCount / 4f); // buttons behind notes
 
             obj.transform.localScale = _noteScaleV;
 
             SpriteRenderer objRenderer = obj.AddComponent<SpriteRenderer>();
-            objRenderer.sprite = btn;
+            objRenderer.sprite = btnSprite;
             _buttonObjects.Add(obj);
         }
 
@@ -396,13 +404,31 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
         // init textures
 
-        _noteSprites = new List<Sprite>();
-        var textureNames = new[] { "circle.png", "left.png", "right.png", "hold.png" };
-        foreach (var textureName in textureNames)
+        LoadNoteSprites(skinPaths);
+
+        // init bg
+        var bgfilenames = new[] {"bg.jpg", "bg.png", "background.jpg", "background.png"};
+        string bgfile = null;
+        foreach (var filename in bgfilenames)
         {
-            var texture = UnityHelper.TextureFromFile(Path.Combine(_skinPath, textureName), SceneSettings.SpriteSize);
-            _noteSprites.Add(UnityHelper.SpriteFromTexture(texture));
+            var full = Path.Combine(bm.Info.Path, filename);
+            if (File.Exists(full))
+            {
+                bgfile = full;
+                break;
+            }
         }
+        if (bgfile != null)
+        {
+            var texture = UnityHelper.TextureFromFile(bgfile, 1);
+            var scale = Math.Min(_width/texture.width, _height/texture.height);
+
+            _bgImage.sprite = UnityHelper.SpriteFromTexture(texture);
+            _bgImage.color = new Color(1, 1, 1, 0.2f);
+            _bgImage.transform.localScale = new Vector3(scale, scale, 1);
+        }
+
+        _bgImage.transform.position = new Vector3(0, 0, (bm.Notes.Count + 3) / 4f );
 
         // init nodes
 
@@ -410,6 +436,19 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         foreach (var note in bm.Notes)
         {
             note.GameInit();
+        }
+
+        // handle skipping
+
+        while (_noteHead < bm.Notes.Count &&
+               bm.Notes[_noteHead].Time < SceneSettings.SkipTime*1000 + CurrentGame.ApproachTime + bm.Offset)
+        {
+            ++_noteHead;
+        }
+
+        while (_bmEventHead < bm.Events.Count && bm.Events[_bmEventHead].Time < 1000*SceneSettings.SkipTime)
+        {
+            ++_bmEventHead;
         }
 
         // init audio

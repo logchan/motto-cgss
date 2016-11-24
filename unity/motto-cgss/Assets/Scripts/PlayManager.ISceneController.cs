@@ -1,4 +1,5 @@
 ﻿using System;
+using motto_cgss_core;
 using motto_cgss_core.Utility;
 using UnityEngine;
 
@@ -95,7 +96,7 @@ public partial class PlayManager
 
     public void SetButtonHit(int pos)
     {
-        _buttonHitSize[pos] = SceneSettings.ButtonHitFrames;
+        _buttonHitTime[pos] = CurrentGame.Time;
     }
 
     public void AddNoteResult(int id, int level)
