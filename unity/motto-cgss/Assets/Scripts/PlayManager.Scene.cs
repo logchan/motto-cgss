@@ -29,7 +29,7 @@ public partial class PlayManager
         var obj = new GameObject();
         obj.name = String.Format("Note {0}", id);
         SetObjectPos(obj, -100, -100);
-        SetZ(obj, CurrentGame.NotesCount - id);
+        SetZ(obj, (CurrentGame.NotesCount - id) / 4.0f);
 
         var sprite = _noteSprites[textureId];
         var objRenderer = obj.AddComponent<SpriteRenderer>();

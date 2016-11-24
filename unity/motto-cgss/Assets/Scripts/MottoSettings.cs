@@ -8,9 +8,9 @@ public class MottoSettings
     public MottoSettings()
     {
         UserDataPath = "";
-        NoteSizeFactor = 0.1497f;
+        NoteSizeFactor = 0.12f;
         ButtonYFactor = 0.15625f;
-        BetweenButtonsFactor = 0.11067f;
+        BetweenButtonsFactor = 0.14f;
         ShooterHeightFactor = 0.6181f;
     }
 

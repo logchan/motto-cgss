@@ -18,7 +18,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
     private float _noteScale;
     private Vector3 _noteScaleV;
-    private int _lineZ;
+    private float _lineZ;
 
     private bool _isPlaying;
     private Beatmap _currentMap;
@@ -51,6 +51,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private Text _noteResultText;
     private Text _comboText;
     private Text _debugText;
+    private SpriteRenderer _bgImage;
 
     private readonly System.Diagnostics.Stopwatch _watch = new System.Diagnostics.Stopwatch();
     private int _passedFrames;
@@ -78,6 +79,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         _noteResultText = GameObject.Find("NoteResultText").GetComponent<Text>();
         _comboText = GameObject.Find("ComboText").GetComponent<Text>();
         _debugText = GameObject.Find("DebugText").GetComponent<Text>();
+        _bgImage = GameObject.Find("BgImage").GetComponent<SpriteRenderer>();
 
         string modText = "";
         if (SceneSettings.Hidden)
@@ -297,7 +299,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
         ////// parameters
 
-        _lineZ = CurrentGame.NotesCount + 1;
+        _lineZ = (CurrentGame.NotesCount + 1) / 4f;
         _noteScale = SceneSettings.NoteSize / (float)SceneSettings.SpriteSize;
         _noteScaleV = new Vector3(_noteScale, _noteScale);
 
@@ -350,7 +352,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
             var obj = new GameObject();
             SetObjectPos(obj, x, SceneSettings.ButtonY);
-            SetZ(obj, CurrentGame.NotesCount); // buttons behind notes
+            SetZ(obj, CurrentGame.NotesCount / 4f); // buttons behind notes
 
             obj.transform.localScale = _noteScaleV;
 
@@ -407,6 +409,26 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             var texture = UnityHelper.TextureFromFile(Path.Combine(_skinPath, textureName), SceneSettings.SpriteSize);
             _noteSprites.Add(UnityHelper.SpriteFromTexture(texture));
         }
+
+        // init bg
+        var bgfile = Path.Combine(bm.Info.Path, "bg.jpg");
+        if (!File.Exists(bgfile))
+            bgfile = Path.Combine(bm.Info.Path, "bg.png");
+        if (File.Exists(bgfile))
+        {
+            var texture = UnityHelper.TextureFromFile(bgfile, 1);
+            Debug.Log(Camera.main.ViewportToScreenPoint(new Vector3(1, 1, 10)));
+            Debug.Log(String.Format("screen width = {0}, height = {1}", _width, _height));
+            Debug.Log(String.Format("texture width = {0}, height = {1}", texture.width, texture.height));
+            var scale = Math.Min(_width/texture.width, _height/texture.height);
+            Debug.Log(String.Format("computed scale = {0}", scale));
+
+            _bgImage.sprite = UnityHelper.SpriteFromTexture(texture);
+            _bgImage.color = new Color(1, 1, 1, 0.2f);
+            _bgImage.transform.localScale = new Vector3(scale, scale, 1);
+        }
+
+        _bgImage.transform.position = new Vector3(0, 0, (bm.Notes.Count + 3) / 4f );
 
         // init nodes
 

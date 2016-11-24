@@ -11,6 +11,7 @@ public partial class PlayManager
 
     private bool _isKiai = false;
     private int _kiaiBpm = 0;
+    private int _kiaiStartTime = 0;
 
     private int _rotateStartTime = -1;
     private float _rotateStartAngle = 0;
@@ -30,6 +31,7 @@ public partial class PlayManager
             ++_bmEventHead;
         }
 
+        ProcessKiai(time);
         ProcessEventRotate(time);
     }
 
@@ -37,6 +39,14 @@ public partial class PlayManager
     {
         switch (ev.EventId)
         {
+            case 1:
+                _isKiai = true;
+                Int32.TryParse(ev.EventArgs, out _kiaiBpm);
+                _kiaiStartTime = time;
+                break;
+            case 2:
+                _isKiai = false;
+                break;
             case 3:
                 _rotateStartTime = time;
                 _rotateStartAngle = _prevRotateAngle;
@@ -78,5 +88,15 @@ public partial class PlayManager
         t = Mathf.SmoothStep(-1, 1, Mathf.Lerp(0.5f, 1, t));
         _prevRotateAngle = (_rotateTargetAngle - _rotateStartAngle)*t + _rotateStartAngle;
         Camera.main.transform.eulerAngles = new Vector3(0, 0, _prevRotateAngle);
+    }
+
+    private void ProcessKiai(int time)
+    {
+        if (!_isKiai || _kiaiBpm == 0)
+        {
+            return;
+        }
+
+
     }
 }
