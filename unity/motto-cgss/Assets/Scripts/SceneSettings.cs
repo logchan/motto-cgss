@@ -13,11 +13,6 @@
 
     public static float SwipeThreshold { get; set; }
 
-    public const float NoteSizeFactor = 0.1497f;
-    public const float ButtonYFactor = 0.15625f;
-    public const float BetweenButtonsFactor = 0.11067f;
-    public const float ShooterHeightFactor = 0.6181f;
-
     public const int SpriteSize = 200;
     public static int NoteSize { get; set; }
     public static int NoteRadius { get; set; }

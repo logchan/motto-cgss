@@ -8,8 +8,16 @@ public class MottoSettings
     public MottoSettings()
     {
         UserDataPath = "";
+        NoteSizeFactor = 0.1497f;
+        ButtonYFactor = 0.15625f;
+        BetweenButtonsFactor = 0.11067f;
+        ShooterHeightFactor = 0.6181f;
     }
 
     public string UserDataPath { get; set; }
+    public float NoteSizeFactor { get; set; }
+    public float ButtonYFactor { get; set; }
+    public float BetweenButtonsFactor { get; set; }
+    public float ShooterHeightFactor { get; set; }
 }
 

@@ -263,6 +263,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private void Initialize(int width, int height)
     {
         var bm = GameManager.BeatmapToPlay;
+        var settings = GameManager.Settings;
         _currentMap = bm;
         _combo = 0;
         _width = width;
@@ -270,13 +271,13 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
         ////// Compute sizes
 
-        SceneSettings.NoteSize = (int) (height*SceneSettings.NoteSizeFactor);
+        SceneSettings.NoteSize = (int) (height* settings.NoteSizeFactor);
         SceneSettings.NoteRadius = SceneSettings.NoteSize/2;
         // TODO: is this correct?
         SceneSettings.NoteRadiusNormalized = SceneSettings.NoteRadius/_height; 
-        SceneSettings.ButtonY = (int) (height * SceneSettings.ButtonYFactor);
-        SceneSettings.BetweenButtons = (int) (height * SceneSettings.BetweenButtonsFactor);
-        SceneSettings.ShooterHeight = (int) (height*SceneSettings.ShooterHeightFactor);
+        SceneSettings.ButtonY = (int) (height * settings.ButtonYFactor);
+        SceneSettings.BetweenButtons = (int) (height * settings.BetweenButtonsFactor);
+        SceneSettings.ShooterHeight = (int) (height* settings.ShooterHeightFactor);
 
         ////// Set data in CurrentGame
 

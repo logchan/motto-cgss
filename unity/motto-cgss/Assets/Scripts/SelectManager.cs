@@ -27,6 +27,7 @@ public class SelectManager : MonoBehaviour
 	{
         // special: magic (for Unity test)
 	    GameObject.Find("MagicButton").GetComponent<Button>().onClick.AddListener(GotoMagic);
+	    GameObject.Find("ParamsButton").GetComponent<Button>().onClick.AddListener(GotoParameters);
 
         // set references
         _scrollRect = FindObjectOfType<ScrollRect>();
@@ -69,7 +70,7 @@ public class SelectManager : MonoBehaviour
 	        titleRect.gameObject.GetComponent<Text>().text = info.Title;
 	        Debug.Assert(artistRect != null, "artistRect != null");
 	        artistRect.gameObject.GetComponent<Text>().text = info.Artist;
-	        obj.transform.position = new Vector3(30, y);
+	        obj.transform.position = new Vector3(40, y);
 	        obj.transform.SetParent(_scrollContent);
 
 	        y -= titleRect.rect.height + artistRect.rect.height + 10;
@@ -126,5 +127,10 @@ public class SelectManager : MonoBehaviour
     private void GotoMagic()
     {
         SceneManager.LoadScene("MagicScene");
+    }
+
+    private void GotoParameters()
+    {
+        SceneManager.LoadScene("ParameterScene");
     }
 }
