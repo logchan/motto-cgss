@@ -36,6 +36,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private List<float> _buttonXNormalized;
     private float _buttonYNormalized;
     private List<GameObject> _buttonObjects;
+    private List<Sprite> _buttonSprites;
     private int _noteHead;
     private List<bool> _btnHasInput;
 
@@ -270,6 +271,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         _combo = 0;
         _width = width;
         _height = height;
+        var skinPaths = new[] {bm.Info.Path, _skinPath};
 
         ////// Compute sizes
 
@@ -328,7 +330,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             - bm.NumberOfButtons * SceneSettings.NoteSize              // total width of buttons
             - (bm.NumberOfButtons - 1) * SceneSettings.BetweenButtons; // total width between buttons
 
-        var btnTexture = UnityHelper.TextureFromFile(Path.Combine(_skinPath, "touchpad.png"), SceneSettings.SpriteSize);
+        LoadButtonSprites(bm.NumberOfButtons, skinPaths);
 
         _buttonX = new List<int>();
         _buttonXNormalized = new List<float>();
@@ -348,7 +350,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             _buttonX.Add(x);
             _buttonXNormalized.Add(x/_width);
 
-            var btn = UnityHelper.SpriteFromTexture(btnTexture);
+            var btnSprite = _buttonSprites[i % _buttonSprites.Count];
 
             var obj = new GameObject();
             SetObjectPos(obj, x, SceneSettings.ButtonY);
@@ -357,7 +359,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             obj.transform.localScale = _noteScaleV;
 
             SpriteRenderer objRenderer = obj.AddComponent<SpriteRenderer>();
-            objRenderer.sprite = btn;
+            objRenderer.sprite = btnSprite;
             _buttonObjects.Add(obj);
         }
 
@@ -402,13 +404,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
         // init textures
 
-        _noteSprites = new List<Sprite>();
-        var textureNames = new[] { "circle.png", "left.png", "right.png", "hold.png" };
-        foreach (var textureName in textureNames)
-        {
-            var texture = UnityHelper.TextureFromFile(Path.Combine(_skinPath, textureName), SceneSettings.SpriteSize);
-            _noteSprites.Add(UnityHelper.SpriteFromTexture(texture));
-        }
+        LoadNoteSprites(skinPaths);
 
         // init bg
         var bgfilenames = new[] {"bg.jpg", "bg.png", "background.jpg", "background.png"};
