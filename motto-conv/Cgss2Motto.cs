@@ -29,7 +29,7 @@ namespace motto_conv
             public bool Skipped { get; set; } = false;
         }
 
-        public static string Convert(string[] lines, double bpm)
+        public static string Convert(List<string> lines, double bpm)
         {
             var sb = new StringBuilder();
             var notes = new List<Note>();

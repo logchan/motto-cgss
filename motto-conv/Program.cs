@@ -78,7 +78,7 @@ namespace motto_conv
                 if (inputFile.StartsWith("\"") && inputFile.EndsWith("\""))
                     inputFile = inputFile.Substring(1, inputFile.Length - 2);
 
-                var lines = File.ReadAllLines(inputFile);
+                var lines = File.ReadAllLines(inputFile).ToList();
 
                 var sb = new StringBuilder();
                 sb.AppendLine("offset:0");
@@ -90,7 +90,7 @@ namespace motto_conv
 
                 if (inputFile.ToLower().EndsWith(".osu"))
                 {
-                    sb.AppendLine(Osu2Motto.Convert(lines, bpm));
+                    sb.AppendLine(Osu2Motto.Convert(inputFile, lines, bpm));
                 }
                 else
                 {
