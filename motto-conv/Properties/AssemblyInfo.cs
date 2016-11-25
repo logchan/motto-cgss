@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("osu2motto")]
+[assembly: AssemblyTitle("motto-conv")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("osu2motto")]
+[assembly: AssemblyProduct("motto-conv")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e9f0dcd0-24a0-4197-9f03-d3ce934cfeda")]
+[assembly: Guid("7357864e-d035-4419-8967-26a2eedf89a6")]
 
 // Version information for an assembly consists of the following four values:
 //
