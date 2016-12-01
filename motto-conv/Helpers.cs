@@ -11,7 +11,7 @@ namespace motto_conv
         public static Tuple<int, int> TimeToBeats(double time, double bpm)
         {
             var beat = (int)(time * bpm / 60000);
-            var subBeat = (int)Math.Round((time * bpm / 60000 - beat) * 48);
+            var subBeat = (int)((time * bpm / 60000 - beat) * 48);
 
             beat += subBeat / 48;
             subBeat %= 48;

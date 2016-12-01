@@ -10,16 +10,27 @@ namespace motto_conv
     public static class Osu2Motto
     {
         private static Random _r;
+        private static int _lastSliderEnd = -1;
+        private static int _currGroupOtherPos = -1;
 
         public static string Convert(string filename, List<string> lines, double bpm)
         {
             _r = null;
 
             int noteId = 1;
+            var msPerBeat = 60000 / bpm;
             var sb = new StringBuilder();
             var bm = new Beatmap(filename);
+            
             bm.Bpm = bpm;
             bm.ReadFile();
+
+            var bmm = new BeatmapManager(bm);
+            bmm.SliderCalculations();
+
+            var lastType = 0;
+            var lastTime = 0;
+            var lastPos = -1;
 
             var inHitObjects = false;
             foreach (var line in lines)
@@ -46,75 +57,117 @@ namespace motto_conv
                         Int32.Parse(basicarr[2]));
                 }
 
+                var hitobjs = bmm.GetHitObjects();
                 var type = Int32.Parse(basicarr[3]);
-
+                var bmTime = Int32.Parse(basicarr[2]);
+                var time = Helpers.TimeToBeats(bmTime, bpm);
+                
                 if ((type & 2) > 0)
                 {
-                    ParseSlider(bm, arr, basicarr, sb, bpm, ref noteId);
+                    var slider = hitobjs.FirstOrDefault(o => o.StartTime == bmTime) as Slider;
+                    ParseSlider(slider, arr, basicarr, sb, bpm, ref noteId);
+                    lastType = 1;
                 }
                 else if ((type & 8) > 0)
                 {
                     // spinner
-                    var start = Helpers.TimeToBeats(Int32.Parse(basicarr[2])/1000.0, bpm);
-                    var end = Helpers.TimeToBeats(Int32.Parse(basicarr[5])/1000.0, bpm);
-                    sb.AppendLine($"{noteId},1,2,2,0,{start.Item1},{start.Item2},0,{end.Item1},{end.Item2},0");
+                    
+                    var end = Helpers.TimeToBeats(Int32.Parse(basicarr[5]), bpm);
+                    sb.AppendLine($"{noteId},1,2,2,0,{time.Item1},{time.Item2},0,{end.Item1},{end.Item2},0");
                     ++noteId;
+                    _lastSliderEnd = -1;
+                    lastType = 2;
                 }
                 else
                 {
                     // note
                     // TODO: handle in groups
-                    var time = Helpers.TimeToBeats(Int32.Parse(basicarr[2]) / 1000.0, bpm);
-                    var startPos = Int32.Parse(basicarr[1])/102;
-                    var endPos = Int32.Parse(basicarr[2])/102;
-                    sb.AppendLine($"{noteId},0,{startPos},{endPos},0,{time.Item1},{time.Item2},0");
+                    var startPos = Int32.Parse(basicarr[0])/103;
+                    var endPos = Int32.Parse(basicarr[1])/77;
+                    var actualEndPos = endPos;
+                    if (lastType == 3 && (bmTime - lastTime) < msPerBeat/3)
+                    {
+                        if (lastPos == endPos)
+                        {
+                            if (_currGroupOtherPos < 0 || _currGroupOtherPos == endPos)
+                            {
+                                _currGroupOtherPos = _r.Next(0, 4);
+                                if (_currGroupOtherPos >= endPos)
+                                    ++_currGroupOtherPos;
+                            }
+                            actualEndPos = _currGroupOtherPos;
+                        }
+                    }
+                    else
+                    {
+                        _currGroupOtherPos = -1;
+                    }
+
+                    sb.AppendLine($"{noteId},0,{startPos},{actualEndPos},0,{time.Item1},{time.Item2},0");
                     ++noteId;
+
+                    lastPos = actualEndPos;
+                    _lastSliderEnd = -1;
+                    lastType = 3;
                 }
+
+                lastTime = bmTime;
             }
 
             return sb.ToString();
         }
 
-        private static void ParseSlider(Beatmap bm, string[] arr, string[] basicarr, StringBuilder sb, double bpm, ref int noteId)
+        private static void ParseSlider(Slider slider, string[] arr, string[] basicarr, StringBuilder sb, double bpm, ref int noteId)
         {
             var length = 0;
-            var repeat = 0;
+            var repeat = 1;
 
             for (int i = 1; i < arr.Length; ++i)
             {
                 if (arr[i].IndexOf(',') > 0)
                 {
                     var lastPointArr = arr[i].Split(',');
-                    repeat = Int32.Parse(lastPointArr[1]) - 1;
+                    repeat = Int32.Parse(lastPointArr[1]);
                     break;
                 }
             }
 
             var time = Int32.Parse(basicarr[2]);
-            var hitobj = bm.HitObjects.FirstOrDefault(obj => obj.StartTime == time) as Slider;
-            if (hitobj == null)
-                return;
+            length = slider.Duration / repeat;
 
-            length = hitobj.Duration;
-            Console.WriteLine(length);
-
-            var start = Helpers.TimeToBeats(time / 1000.0, bpm);
+            var start = Helpers.TimeToBeats(time, bpm);
             time += length;
-            var end = Helpers.TimeToBeats(time / 1000.0,bpm);
+            var end = Helpers.TimeToBeats(time,bpm);
 
             bool left = true;
-            for (int i = 0; i <= repeat; ++i)
+            if (repeat == 1)
             {
-                int pos;
-                pos = left ? _r.Next(0, 2) : _r.Next(3, 5);
-                left = !left;
-
-                sb.AppendLine($"{noteId},1,{pos},{pos},0,{start.Item1},{start.Item2},0,{end.Item1},{end.Item2},0");
+                var startPos = Int32.Parse(basicarr[1]) / 77;
+                var endPos = Int32.Parse(basicarr[0]) / 103;
+                if (_lastSliderEnd != -1 && endPos == _lastSliderEnd)
+                {
+                    endPos = _r.Next(0, 4);
+                    if (endPos >= _lastSliderEnd)
+                        ++endPos;
+                }
+                _lastSliderEnd = endPos;
+                sb.AppendLine($"{noteId},1,{startPos},{endPos},0,{start.Item1},{start.Item2},0,{end.Item1},{end.Item2},0");
                 ++noteId;
+            }
+            else
+            {
+                for (int i = 0; i < repeat; ++i)
+                {
+                    int pos = repeat > 1 ? (left ? _r.Next(0, 2) : _r.Next(3, 5)) : _r.Next(0, 5);
+                    left = !left;
 
-                start = end;
-                time += length;
-                end = Helpers.TimeToBeats(time / 1000.0, bpm);
+                    sb.AppendLine($"{noteId},1,{pos},{pos},0,{start.Item1},{start.Item2},0,{end.Item1},{end.Item2},0");
+                    ++noteId;
+
+                    start = end;
+                    time += length;
+                    end = Helpers.TimeToBeats(time, bpm);
+                }
             }
         }
     }
