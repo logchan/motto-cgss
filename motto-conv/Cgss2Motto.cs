@@ -1,21 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace cgss2motto
+namespace motto_conv
 {
-    class Program
+    public static class Cgss2Motto
     {
-        static string Prompt(string msg)
-        {
-            Console.Write(msg);
-            return Console.ReadLine();
-        }
-
         private class Note
         {
             public int OriginalId { get; set; }
@@ -37,23 +29,8 @@ namespace cgss2motto
             public bool Skipped { get; set; } = false;
         }
 
-        static Tuple<int, int> TimeToBeats(double time, double bpm)
+        public static string Convert(List<string> lines, double bpm)
         {
-            var beat = (int)(time * bpm / 60000);
-            var subBeat = (int)Math.Round((time * bpm / 60000 - beat) * 48);
-
-            beat += subBeat / 48;
-            subBeat %= 48;
-
-            return new Tuple<int, int>(beat, subBeat);
-        }
-
-        static void Main(string[] args)
-        {
-            var file = Prompt("CSV: ");
-            var bpm = Double.Parse(Prompt("BPM: "));
-
-            var lines = File.ReadAllLines(file);
             var sb = new StringBuilder();
             var notes = new List<Note>();
 
@@ -76,7 +53,7 @@ namespace cgss2motto
                     };
 
                     var time = Double.Parse(arr[1]);
-                    var beats = TimeToBeats(time * 1000, bpm);
+                    var beats = Helpers.TimeToBeats(time * 1000, bpm);
                     note.Beat = beats.Item1;
                     note.SubBeat = beats.Item2;
                     note.Time = time;
@@ -113,7 +90,7 @@ namespace cgss2motto
                                 note.NextIndex = j;
                                 other.StartPos = note.StartPos;
                             }
-                            else if (other.Type == 1)
+                            else
                             {
                                 note.OriginalNextId = other.OriginalId;
                                 note.Group = other.Group;
@@ -179,7 +156,7 @@ namespace cgss2motto
                     }
                 }
 
-                var common = $"{note.Id},{note.Type},{note.StartPos},{note.EndPos},{note.Beat},{note.SubBeat},{note.GroupNextId}";
+                var common = $"{note.Id},{note.Type},{note.StartPos},{note.EndPos},0,{note.Beat},{note.SubBeat},{note.GroupNextId}";
                 switch (note.Type)
                 {
                     case 0:
@@ -198,10 +175,7 @@ namespace cgss2motto
                 }
             }
 
-            var outfile = Prompt("Output: ");
-            File.WriteAllText(outfile, sb.ToString());
-
-            Prompt("Press ENTER to exit.");
+            return sb.ToString();
         }
     }
 }
