@@ -35,9 +35,10 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private List<int> _buttonX;
     private List<float> _buttonXNormalized;
     private float _buttonYNormalized;
-    private List<GameObject> _buttonObjects;
     private List<SpriteRenderer> _buttonImages;
+    private List<SpriteRenderer> _hitEffectImages;
     private List<Sprite> _buttonSprites;
+    private Dictionary<string, Sprite> _skinSprites;
     private int _noteHead;
     private List<bool> _btnHasInput;
 
@@ -332,12 +333,13 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
             - (bm.NumberOfButtons - 1) * SceneSettings.BetweenButtons; // total width between buttons
 
         LoadButtonSprites(bm.NumberOfButtons, skinPaths);
+        LoadSkinSprites(skinPaths);
 
         _buttonX = new List<int>();
         _buttonXNormalized = new List<float>();
         _buttonYNormalized = SceneSettings.ButtonY/_height;
-        _buttonObjects = new List<GameObject>();
         _buttonImages = new List<SpriteRenderer>();
+        _hitEffectImages = new List<SpriteRenderer>();
         _buttonHitTime = new List<int>();
         _btnHasInput = new List<bool>();
         for (int i = 0; i < bm.NumberOfButtons; ++i)
@@ -354,16 +356,24 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
             var btnSprite = _buttonSprites[i % _buttonSprites.Count];
 
-            var obj = new GameObject();
+            var obj = new GameObject { name = String.Format("Button {0}", i) };
             SetObjectPos(obj, x, SceneSettings.ButtonY);
             SetZ(obj, CurrentGame.NotesCount / 4f); // buttons behind notes
-
             obj.transform.localScale = _noteScaleV;
 
-            SpriteRenderer objRenderer = obj.AddComponent<SpriteRenderer>();
+            var objRenderer = obj.AddComponent<SpriteRenderer>();
             objRenderer.sprite = btnSprite;
             _buttonImages.Add(objRenderer);
-            _buttonObjects.Add(obj);
+
+            var effectObj = new GameObject { name = String.Format("Hiteffect {0}", i) };
+            SetObjectPos(effectObj, x, SceneSettings.ButtonY);
+            SetZ(effectObj, (CurrentGame.NotesCount - 0.5f)/4f);
+            effectObj.transform.localScale = _noteScaleV*1.25f;
+
+            var effectObjRenderer = effectObj.AddComponent<SpriteRenderer>();
+            effectObjRenderer.sprite = _skinSprites["hiteffect"];
+            effectObjRenderer.color = new Color(1, 1, 1, 0);
+            _hitEffectImages.Add(effectObjRenderer);
         }
 
         ////// init shooters

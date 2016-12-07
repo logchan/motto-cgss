@@ -7,6 +7,21 @@ using UnityEngine;
 
 public partial class PlayManager
 {
+    private void LoadSkinSprites(string[] skinPaths)
+    {
+        _skinSprites = new Dictionary<string, Sprite>();
+
+        foreach (var path in skinPaths)
+        {
+            var file = Path.Combine(path, "hiteffect.png");
+            if (!File.Exists(file))
+                continue;
+
+            _skinSprites.Add("hiteffect", UnityHelper.SpriteFromTexture(UnityHelper.TextureFromFile(file, 200)));
+            break;
+        }
+    }
+
     private void LoadButtonSprites(int numBtn, string[] skinPaths)
     {
         _buttonSprites = new List<Sprite>();

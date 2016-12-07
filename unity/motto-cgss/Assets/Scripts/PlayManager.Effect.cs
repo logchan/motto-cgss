@@ -67,7 +67,6 @@ public partial class PlayManager
 
     private void ShowHitEffect(int time)
     {
-        // animate the buttons being hit
         for (int i = 0; i < CurrentGame.NumberOfButtons; ++i)
         {
             var hitTime = _buttonHitTime[i];
@@ -75,17 +74,16 @@ public partial class PlayManager
                 continue;
 
             var diff = time - hitTime;
-            if (diff > SceneSettings.ButtonAnimationTime)
+            if (diff > SceneSettings.HitEffectTime)
             {
-                _buttonObjects[i].transform.localScale = new Vector3(_noteScale, _noteScale);
+                _hitEffectImages[i].color = new Color(1, 1, 1, 0);
                 _buttonHitTime[i] = 0;
                 continue;
             }
 
-            var t = 1 - diff/SceneSettings.ButtonAnimationTime;
+            var t = 1 - diff/SceneSettings.HitEffectTime;
 
-            float scale = _noteScale + _noteScale * t / 4;
-            _buttonObjects[i].transform.localScale = new Vector3(scale, scale);
+            _hitEffectImages[i].color = new Color(1, 1, 1, t*SceneSettings.HitEffectAlpha);
         }
     }
 }
