@@ -36,6 +36,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
     private List<float> _buttonXNormalized;
     private float _buttonYNormalized;
     private List<GameObject> _buttonObjects;
+    private List<SpriteRenderer> _buttonImages;
     private List<Sprite> _buttonSprites;
     private int _noteHead;
     private List<bool> _btnHasInput;
@@ -336,6 +337,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         _buttonXNormalized = new List<float>();
         _buttonYNormalized = SceneSettings.ButtonY/_height;
         _buttonObjects = new List<GameObject>();
+        _buttonImages = new List<SpriteRenderer>();
         _buttonHitTime = new List<int>();
         _btnHasInput = new List<bool>();
         for (int i = 0; i < bm.NumberOfButtons; ++i)
@@ -360,6 +362,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
 
             SpriteRenderer objRenderer = obj.AddComponent<SpriteRenderer>();
             objRenderer.sprite = btnSprite;
+            _buttonImages.Add(objRenderer);
             _buttonObjects.Add(obj);
         }
 
