@@ -7,9 +7,12 @@
     }
 
     public const float HitStatusTime = 1000;
-    public const float ButtonAnimationTime = 300;
+    public const float HitEffectTime = 100;
+    public const float HitEffectAlpha = 1f;
     public const float ComboAnimationTime = 200;
     public const float ComboAnimationScale = 0.1f;
+    public const float RestFadeTime = 1000;
+    public const float BgAlpha = 0.2f;
 
     public static float SwipeThreshold { get; set; }
 

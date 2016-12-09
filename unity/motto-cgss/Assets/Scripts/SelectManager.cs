@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using motto_cgss_core.Model;
 using UnityEngine.SceneManagement;
-using Debug = System.Diagnostics.Debug;
 
 public class SelectManager : MonoBehaviour
 {
@@ -66,12 +65,10 @@ public class SelectManager : MonoBehaviour
 	        var obj = Instantiate(_songInfoPrefab);
 	        var titleRect = obj.transform.GetChild(0) as RectTransform;
             var artistRect = obj.transform.GetChild(1) as RectTransform;
-	        Debug.Assert(titleRect != null, "titleRect != null");
 	        titleRect.gameObject.GetComponent<Text>().text = info.Title;
-	        Debug.Assert(artistRect != null, "artistRect != null");
 	        artistRect.gameObject.GetComponent<Text>().text = info.Artist;
-	        obj.transform.position = new Vector3(40, y);
-	        obj.transform.SetParent(_scrollContent);
+            obj.transform.SetParent(_scrollContent);
+            obj.transform.localPosition = new Vector3(10, y);
 
 	        y -= titleRect.rect.height + artistRect.rect.height + 10;
 
@@ -79,7 +76,6 @@ public class SelectManager : MonoBehaviour
 	        {
 	            var btnObj = Instantiate(_diffBtnPrefab);
 	            var btnRect = btnObj.transform.GetChild(0) as RectTransform;
-	            Debug.Assert(btnRect != null, "btnRect != null");
 	            btnRect.gameObject.GetComponentInChildren<Text>().text = map.DifficultyName;
 
 	            var btnScript = btnRect.gameObject.AddComponent<SelectButton>();
@@ -88,14 +84,15 @@ public class SelectManager : MonoBehaviour
 
 	            btnRect.gameObject.GetComponent<Button>().onClick.AddListener(btnScript.OnClick);
 
-                btnObj.transform.position = new Vector3(45, y);
-	            btnObj.transform.SetParent(_scrollContent);
+                btnObj.transform.SetParent(_scrollContent);
+                btnObj.transform.localPosition = new Vector3(15, y);
 
 	            y -= btnRect.rect.height + 10;
 	        }
 	    }
 
-	    _scrollContent.rect.Set(_scrollContent.rect.x, _scrollContent.rect.y, _scrollContent.rect.width, Mathf.Max(_scrollContent.rect.height, -y));
+	    _scrollContent.sizeDelta = new Vector2(_scrollContent.rect.width, Mathf.Max(_scrollContent.rect.height, -y));
+	    _scrollContent.localPosition = new Vector3(0, 0);
 	}
 	
     public void SelectMap(Beatmap map)

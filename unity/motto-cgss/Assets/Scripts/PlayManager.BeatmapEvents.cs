@@ -19,6 +19,11 @@ public partial class PlayManager
     private float _rotateTargetAngle;
     private float _rotateTargetTime;
 
+    private bool _isRest = false;
+    private int _restFadeStartTime = 0;
+    private float _restFadeProgress = 0;
+    private float _restFadeStartProgress = 0;
+
     private void ProcessEvents(int time)
     {
         while (_bmEventHead < _currentMap.Events.Count)
@@ -33,6 +38,7 @@ public partial class PlayManager
 
         ProcessKiai(time);
         ProcessEventRotate(time);
+        ProcessRest(time);
     }
 
     private void ProcessOneEvent(BeatmapEvent ev, int time)
@@ -68,6 +74,16 @@ public partial class PlayManager
             case 4:
                 _prevRotateAngle = 0;
                 break;
+            case 5:
+                _isRest = true;
+                _restFadeStartTime = time;
+                _restFadeStartProgress = _restFadeProgress;
+                break;
+            case 6:
+                _isRest = false;
+                _restFadeStartTime = time;
+                _restFadeStartProgress = _restFadeProgress;
+                break;
         }
     }
 
@@ -98,5 +114,33 @@ public partial class PlayManager
         }
 
 
+    }
+
+    private void ProcessRest(int time)
+    {
+        if (_isRest)
+        {
+            if (_restFadeProgress >= 1)
+                return;
+
+            _restFadeProgress = (time - _restFadeStartTime)/SceneSettings.RestFadeTime + _restFadeStartProgress;
+            if (_restFadeProgress > 1)
+                _restFadeProgress = 1;
+        }
+        else
+        {
+            if (_restFadeProgress <= 0)
+                return;
+
+            _restFadeProgress = _restFadeStartProgress - (time - _restFadeStartTime)/SceneSettings.RestFadeTime;
+            if (_restFadeProgress < 0)
+                _restFadeProgress = 0;
+        }
+
+        _bgImage.color = new Color(1, 1, 1, SceneSettings.BgAlpha + (1 - SceneSettings.BgAlpha) * _restFadeProgress);
+        foreach (var btnImg in _buttonImages)
+        {
+            btnImg.color = new Color(1, 1, 1, 1 - _restFadeProgress);
+        }
     }
 }

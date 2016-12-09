@@ -8,9 +8,11 @@ namespace Utilities
 {
     public static class AudioHelper
     {
-        #region SoundTouch DllImport
+
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_ANDROID
+
+        #region SoundTouch DllImport (non-iOS)
 
         [DllImport("SoundTouch", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr soundtouch_createInstance();
@@ -42,8 +44,6 @@ namespace Utilities
         private static extern bool soundtouch_setSetting(IntPtr h, int settingId, int value);
         [DllImport("SoundTouch", CallingConvention = CallingConvention.Cdecl)]
         private static extern uint soundtouch_receiveSamples(IntPtr h, float[] outBuffer, uint maxSamples);
-
-#endif
 
         #endregion
 
@@ -109,5 +109,12 @@ namespace Utilities
             soundtouch_destroyInstance(h);
             return result;
         }
+
+#else
+        public static float[] ChangeAudioSpeed(uint channels, uint sampleRate, float factor, float[] data)
+        {
+            throw new Exception("The feature is not available on this platform");
+        }
+#endif
     }
 }
