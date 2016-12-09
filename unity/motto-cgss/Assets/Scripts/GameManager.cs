@@ -97,7 +97,12 @@ public static class GameManager
 
             try
             {
-                var info = new BeatmapInfo(File.ReadAllLines(infoFile), subdir.Name, subdir.FullName);
+                var info = new BeatmapInfo
+                {
+                    FileName = subdir.Name,
+                    Path = subdir.FullName
+                };
+                info.Parse(File.ReadAllLines(infoFile));
 
                 _beatmaps[info] = new List<Beatmap>();
 

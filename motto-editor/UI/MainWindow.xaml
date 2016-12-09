@@ -1,0 +1,39 @@
+﻿<Window x:Class="motto_editor.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:motto_editor"
+        xmlns:control="clr-namespace:motto_editor.UI.Control"
+        xmlns:ui="clr-namespace:motto_editor.UI"
+        mc:Ignorable="d"
+        Title="MainWindow" Width="1280" Height="750" Closing="MainWindow_OnClosing">
+    <Window.CommandBindings>
+        <CommandBinding Command="Open" Executed="ExecuteCmdOpen"></CommandBinding>
+        <CommandBinding Command="{x:Static ui:MainWindow.OpenDifficultyCommand}" Executed="ExecuteCmdOpenDifficulty"></CommandBinding>
+        <CommandBinding Command="{x:Static ui:MainWindow.PlayPauseCommand}" Executed="ExecuteCmdPlayPause"></CommandBinding>
+    </Window.CommandBindings>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="100"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open" Command="Open"></MenuItem>
+                <MenuItem Header="Open _difficulty" Command="{x:Static ui:MainWindow.OpenDifficultyCommand}"></MenuItem>
+                <MenuItem Header="_Exit"></MenuItem>
+            </MenuItem>
+        </Menu>
+        <!--TODO: change to a ruler canvas-->
+        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="4 0 4 0">
+            <Slider Name="MusicProgress" Margin="0 20 0 20" Minimum="0" Maximum="{Binding Source={x:Static local:EditorStatus.Current}, Path=MusicLength}" SmallChange="1" Value="{Binding Source={x:Static local:EditorStatus.Current}, Path=CurrentTime, Mode=TwoWay}"></Slider>
+            <TextBlock Text="{Binding ElementName=MusicProgress, Path=Value}"></TextBlock>
+        </StackPanel>
+        
+        <control:EditorCanvas Grid.Row="2" x:Name="EditorCanvas">
+            
+        </control:EditorCanvas>
+    </Grid>
+</Window>

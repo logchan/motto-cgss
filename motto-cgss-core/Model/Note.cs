@@ -218,30 +218,36 @@ namespace motto_cgss_core.Model
 
                 if (CurrentGame.AutoPlay)
                 {
-                    if (timeDiff <= 0 && _prevTimeDiff > 0)
+                    if (timeDiff <= 0)
                     {
-                        NoteHit = true;
-                        _hitTime = CurrentGame.Time;
-                        CurrentGame.SeToPlay |= HitsoundId;
-                        _scene.SetButtonHit(TouchPosition);
-                        _scene.AddNoteResult(Id, timeDiff);
+                        if (_prevTimeDiff > 0)
+                        {
+                            NoteHit = true;
+                            _hitTime = CurrentGame.Time;
+                            CurrentGame.SeToPlay |= HitsoundId;
+                            _scene.SetButtonHit(TouchPosition);
+                            _scene.AddNoteResult(Id, timeDiff);
+                        }
+                        Status = NoteStatus.Done;
+                    }
+                    else
+                    {
+                        NoteHit = false;
                     }
                 }
-                else if(!CurrentGame.ButtonHandled[TouchPosition])
+                else if (!CurrentGame.ButtonHandled[TouchPosition])
                 {
                     HandleButton(timeDiff);
                 }
 
-                if (Status == NoteStatus.Shown)
-                {
-                    _t = MathHelper.Clamp(1 - timeDiff / CurrentGame.ApproachTime, 0, 1);
-                }
-
-                if (NoteHit)
-                {
-                    Status = NoteStatus.Done;
-                }
+                _t = MathHelper.Clamp(1 - timeDiff/CurrentGame.ApproachTime, 0, 1);
             }
+            else
+            {
+                _t = 0;
+                Status = NoteStatus.NotShown;
+            }
+
             _prevTimeDiff = timeDiff;
             FrameComputed = true;
             _computationDrawn = false;
@@ -252,16 +258,17 @@ namespace motto_cgss_core.Model
             if (_computationDrawn)
                 return;
 
-            if (Status == NoteStatus.Done)
-            {
-                Destroy(ref _noteHandle);
-            }
-            else if (Status == NoteStatus.Shown)
+            if (Status == NoteStatus.Shown)
             {
                 if (_noteHandle == 0)
                     _noteHandle = _scene.CreateNote(TextureId, Index);
                 _scene.SetNote(_noteHandle, StartPosition, TouchPosition, _t);
             }
+            else
+            {
+                Destroy(ref _noteHandle);
+            }
+
             _computationDrawn = true;
         }
 
@@ -294,9 +301,6 @@ namespace motto_cgss_core.Model
 
         public void ComputeNote()
         {
-            if (Status == NoteStatus.Done)
-                return;
-
             if (!FrameComputed)
                 ComputeSelf();
         }

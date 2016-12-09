@@ -13,7 +13,6 @@ namespace motto_cgss_core.Model
         // Information
         public BeatmapInfo Info { get; }
         public int NumberOfButtons { get; set; }
-        public int Offset { get; set; }
         public string Author { get; set; }
         public string DifficultyName { get; set; }
         
@@ -54,11 +53,6 @@ namespace motto_cgss_core.Model
                             int btn;
                             if (Int32.TryParse(arr[1], out btn))
                                 NumberOfButtons = btn;
-                            break;
-                        case "offset":
-                            int offset;
-                            if (Int32.TryParse(arr[1], out offset))
-                                Offset = offset;
                             break;
                         case "author":
                             Author = arr[1];

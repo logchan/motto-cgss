@@ -133,7 +133,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
                 _lastAudioTime = audioTime;
                 _lastComputedTime = _lastAudioTime;
             }
-            CurrentGame.Time = (int)(_lastComputedTime * 1000) + _currentMap.Offset;
+            CurrentGame.Time = (int)(_lastComputedTime * 1000);
 
             // fps counter
             ++_passedFrames;
@@ -454,7 +454,7 @@ public partial class PlayManager : MonoBehaviour, ISceneController {
         // handle skipping
 
         while (_noteHead < bm.Notes.Count &&
-               bm.Notes[_noteHead].Time < SceneSettings.SkipTime*1000 + CurrentGame.ApproachTime + bm.Offset)
+               bm.Notes[_noteHead].Time < SceneSettings.SkipTime*1000 + CurrentGame.ApproachTime)
         {
             ++_noteHead;
         }
