@@ -10,9 +10,9 @@ using System.Windows.Media;
 
 namespace motto_editor.UI.Control
 {
-    internal class EditorCanvas : Canvas
+    internal partial class EditorCanvas : Canvas
     {
-        private EventWaitHandle _renderHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle _renderHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
 
         internal void RenderBlocked()
         {

@@ -59,7 +59,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="UI\Control\EditorCanvas.Objects.cs" />
     <Compile Include="UI\MainWindow.EventHandler.cs" />
+    <Compile Include="UI\MainWindow.ISceneController.cs" />
     <Compile Include="UI\MainWindow.Update.cs" />
     <Compile Include="Utility\FileHelper.cs" />
     <Page Include="UI\MainWindow.xaml">
