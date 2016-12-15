@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using motto_cgss_core;
 using motto_cgss_core.Model;
 using motto_editor.Utility;
 using Microsoft.Win32;
@@ -55,11 +56,28 @@ namespace motto_editor.UI
                 _musicOut.Init(_musicWave);
 
                 // TODO: refactor
+                CurrentGame.ButtonHandled = new List<bool>();
+                CurrentGame.ButtonStates = new List<ButtonState>();
+                CurrentGame.NotesCount = bm.Notes.Count;
+                CurrentGame.NumberOfButtons = bm.NumberOfButtons;
+                for (int i = 0; i < bm.NumberOfButtons; ++i)
+                {
+                    CurrentGame.ButtonHandled.Add(false);
+                    CurrentGame.ButtonStates.Add(ButtonState.None);
+                }
+
                 EditorStatus.Current.SelectedNote = null;
                 EditorStatus.Current.CurrentBeatmap = null;
                 EditorStatus.Current.EditingMap = bm;
                 EditorStatus.Current.MusicLength = (int)_musicWave.TotalTime.TotalMilliseconds;
                 EditorStatus.Current.CurrentTime = 0;
+
+                EditorCanvas.RecomputePositions();
+
+                foreach (var note in bm.Notes)
+                {
+                    note.GameInit();
+                }
 
                 Update();
             }

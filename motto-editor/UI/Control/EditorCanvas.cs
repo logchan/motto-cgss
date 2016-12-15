@@ -1,4 +1,5 @@
-﻿using System;
+﻿using motto_cgss_core.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,23 +8,21 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using motto_cgss_core;
 
 namespace motto_editor.UI.Control
 {
     internal partial class EditorCanvas : Canvas
     {
-        private readonly EventWaitHandle _renderHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
-
-        internal void RenderBlocked()
+        public EditorCanvas()
         {
-            Dispatcher.Invoke(InvalidateVisual);
-            _renderHandle.WaitOne();
+            LayoutUpdated += EditorCanvas_LayoutUpdated;
         }
 
-        protected override void OnRender(DrawingContext dc)
+        private void EditorCanvas_LayoutUpdated(object sender, EventArgs e)
         {
-            dc.DrawEllipse(Brushes.AliceBlue, null, new Point(ActualWidth/2, ActualHeight/2), EditorStatus.Current.CurrentTime/400d, EditorStatus.Current.CurrentTime / 400d);
-            _renderHandle.Set();
+            if (EditorStatus.Current.EditingMap != null)
+                RecomputePositions();
         }
     }
 }

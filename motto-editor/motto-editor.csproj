@@ -59,9 +59,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="UI\Control\EditorCanvas.Computation.cs" />
+    <Compile Include="UI\Control\EditorCanvas.Drawing.cs" />
+    <Compile Include="UI\Control\EditorCanvas.ISceneController.cs" />
     <Compile Include="UI\Control\EditorCanvas.Objects.cs" />
+    <Compile Include="UI\Control\EditorCanvas.Positions.cs" />
     <Compile Include="UI\MainWindow.EventHandler.cs" />
-    <Compile Include="UI\MainWindow.ISceneController.cs" />
     <Compile Include="UI\MainWindow.Update.cs" />
     <Compile Include="Utility\FileHelper.cs" />
     <Page Include="UI\MainWindow.xaml">
@@ -72,7 +75,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="EditorDimensions.cs" />
     <Compile Include="EditorStatus.cs" />
     <Compile Include="UI\Control\EditorCanvas.cs" />
     <Compile Include="UI\MainWindow.Audio.cs" />

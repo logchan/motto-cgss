@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using motto_cgss_core;
 
 namespace motto_editor.UI
 {
@@ -22,6 +23,11 @@ namespace motto_editor.UI
             InitializeComponent();
 
             EditorStatus.Current.PropertyChanged += CurrentTimeChanged;
+
+            CurrentGame.ApproachTime = 800;
+            CurrentGame.AutoPlay = true;
+            CurrentGame.Scene = EditorCanvas;
+            CurrentGame.SpeedFactor = 1.0;
         }
     }
 }

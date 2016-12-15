@@ -17,6 +17,7 @@ namespace motto_editor.UI
 
         private void Update()
         {
+            EditorCanvas.Compute();
             EditorCanvas.InvalidateVisual();
         }
 
@@ -69,7 +70,7 @@ namespace motto_editor.UI
                 lastStartTime = startTime;
 
                 EditorStatus.Current.CurrentTime = musicTime;
-                EditorCanvas.RenderBlocked();
+                EditorCanvas.ComputeAndRender();
 
                 var endTime = DateTime.UtcNow;
                 var elapsedMs = (endTime - startTime).TotalMilliseconds;

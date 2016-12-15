@@ -182,6 +182,7 @@ namespace motto_cgss_core.Model
             else
             {
                 Destroy(ref _endHandle);
+                Destroy(ref _endLineHandle);
                 Destroy(ref _trailHandle);
             }
         }

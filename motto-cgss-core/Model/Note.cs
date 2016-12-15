@@ -267,6 +267,8 @@ namespace motto_cgss_core.Model
             else
             {
                 Destroy(ref _noteHandle);
+                Destroy(ref _lineHandle);
+                Destroy(ref _gpLineHandle);
             }
 
             _computationDrawn = true;
