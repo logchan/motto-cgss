@@ -42,7 +42,6 @@ namespace motto_editor.UI.Control
                     if (note.Status != NoteStatus.Done)
                     {
                         start = i;
-                        Debug.WriteLine($"Start = {start}, _noteHead = {_noteHead}");
                         break;
                     }
                 }

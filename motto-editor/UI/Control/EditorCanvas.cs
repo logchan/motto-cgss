@@ -16,13 +16,7 @@ namespace motto_editor.UI.Control
     {
         public EditorCanvas()
         {
-            LayoutUpdated += EditorCanvas_LayoutUpdated;
-        }
 
-        private void EditorCanvas_LayoutUpdated(object sender, EventArgs e)
-        {
-            if (EditorStatus.Current.EditingMap != null)
-                RecomputePositions();
         }
     }
 }

@@ -64,6 +64,7 @@
     <Compile Include="UI\Control\EditorCanvas.ISceneController.cs" />
     <Compile Include="UI\Control\EditorCanvas.Objects.cs" />
     <Compile Include="UI\Control\EditorCanvas.Positions.cs" />
+    <Compile Include="UI\Converter\MillisecondToStringConverter.cs" />
     <Compile Include="UI\MainWindow.EventHandler.cs" />
     <Compile Include="UI\MainWindow.Update.cs" />
     <Compile Include="Utility\FileHelper.cs" />

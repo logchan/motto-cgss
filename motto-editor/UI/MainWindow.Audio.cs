@@ -16,6 +16,8 @@ namespace motto_editor.UI
 
         private void StartPlaying(int time)
         {
+            if (_musicWave == null) return;
+
             MusicProgress.IsEnabled = false;
             _musicWave.CurrentTime = TimeSpan.FromMilliseconds(time);
             _musicOut?.Play();

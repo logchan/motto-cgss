@@ -6,13 +6,17 @@
         xmlns:local="clr-namespace:motto_editor"
         xmlns:control="clr-namespace:motto_editor.UI.Control"
         xmlns:ui="clr-namespace:motto_editor.UI"
+        xmlns:converter="clr-namespace:motto_editor.UI.Converter"
         mc:Ignorable="d"
-        Title="MainWindow" Width="1280" Height="750" Closing="MainWindow_OnClosing">
+        Title="MainWindow" Width="1280" Height="750" Closing="MainWindow_OnClosing" ResizeMode="CanMinimize">
     <Window.CommandBindings>
         <CommandBinding Command="Open" Executed="ExecuteCmdOpen"></CommandBinding>
         <CommandBinding Command="{x:Static ui:MainWindow.OpenDifficultyCommand}" Executed="ExecuteCmdOpenDifficulty"></CommandBinding>
         <CommandBinding Command="{x:Static ui:MainWindow.PlayPauseCommand}" Executed="ExecuteCmdPlayPause"></CommandBinding>
     </Window.CommandBindings>
+    <Window.Resources>
+        <converter:MillisecondToStringConverter x:Key="MsToStringConverter"></converter:MillisecondToStringConverter>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -27,11 +31,15 @@
             </MenuItem>
         </Menu>
         <!--TODO: change to a ruler canvas-->
-        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="4 0 4 0">
-            <Slider Name="MusicProgress" Margin="0 20 0 20" Minimum="0" Maximum="{Binding Source={x:Static local:EditorStatus.Current}, Path=MusicLength}" SmallChange="1" Value="{Binding Source={x:Static local:EditorStatus.Current}, Path=CurrentTime, Mode=TwoWay}"></Slider>
-            <TextBlock Text="{Binding ElementName=MusicProgress, Path=Value}"></TextBlock>
-        </StackPanel>
-        
+        <Grid Grid.Row="1" Height="100">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding Source={x:Static local:EditorStatus.Current}, Path=CurrentTime, Converter={StaticResource MsToStringConverter}}" Margin="20" FontSize="40"></TextBlock>
+            <Slider Grid.Column="1" Name="MusicProgress" Margin="20 20 20 20" Minimum="0" Maximum="{Binding Source={x:Static local:EditorStatus.Current}, Path=MusicLength}" SmallChange="1" Value="{Binding Source={x:Static local:EditorStatus.Current}, Path=CurrentTime, Mode=TwoWay}"></Slider>
+        </Grid>
         <control:EditorCanvas Grid.Row="2" x:Name="EditorCanvas">
             
         </control:EditorCanvas>

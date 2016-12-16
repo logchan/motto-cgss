@@ -66,7 +66,9 @@ namespace motto_editor.UI
                 {
                     lastMusicTime = musicTime;
                 }
-                lastComputedTime = musicTime;
+                if (musicTime > lastComputedTime)
+                    lastComputedTime = musicTime;
+
                 lastStartTime = startTime;
 
                 EditorStatus.Current.CurrentTime = musicTime;

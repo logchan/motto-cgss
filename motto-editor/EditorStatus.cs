@@ -40,6 +40,43 @@ namespace motto_editor
             }
         }
 
+        private int _currentSection;
+
+        public int CurrentSection
+        {
+            get { return _currentSection; }
+            set
+            {
+                _currentSection = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentSection)));
+            }
+        }
+
+        private int _currentBeat;
+
+        public int CurrentBeat
+        {
+            get { return _currentBeat; }
+            set
+            {
+                _currentBeat = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentBeat)));
+            }
+        }
+
+        private int _currentSubBeat;
+
+        public int CurrentSubBeat
+        {
+            get { return _currentSubBeat; }
+            set
+            {
+                _currentSubBeat = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentSubBeat)));
+            }
+        }
+
+
         public event PropertyChangedEventHandler PropertyChanged;
     }
 }
