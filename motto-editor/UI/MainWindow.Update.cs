@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using motto_cgss_core.Model;
 
 namespace motto_editor.UI
 {
@@ -19,6 +20,39 @@ namespace motto_editor.UI
         {
             EditorCanvas.Compute();
             EditorCanvas.InvalidateVisual();
+        }
+
+        private void SetCurrentBeatFromTime()
+        {
+            var status = EditorStatus.Current;
+            var bm = status.EditingMap;
+            if (bm == null)
+                return;
+
+            var time = status.CurrentTime;
+            var sectionId = 0;
+            for (int i = 1; i < bm.Sections.Count; ++i)
+            {
+                if (bm.Sections[i].StartTime > time)
+                {
+                    sectionId = i - 1;
+                    break;
+                }
+            }
+
+            int beat, subBeat;
+            bm.Sections[sectionId].TimeToBeats(time/1000.0, out beat, out subBeat);
+
+
+            status.CurrentBeat = beat;
+            status.CurrentSubBeat = subBeat;
+            status.CurrentSection = sectionId;
+        }
+
+        private void SetCurrentTimeFromBeat()
+        {
+            var status = EditorStatus.Current;
+            status.CurrentTime = (int)(1000 * status.EditingMap.Sections[status.CurrentSection].BeatToTime(status.CurrentBeat, status.CurrentSubBeat));
         }
 
         private void CurrentTimeChanged(object sender, PropertyChangedEventArgs args)
@@ -72,6 +106,8 @@ namespace motto_editor.UI
                 lastStartTime = startTime;
 
                 EditorStatus.Current.CurrentTime = musicTime;
+                SetCurrentBeatFromTime();
+
                 EditorCanvas.ComputeAndRender();
 
                 var endTime = DateTime.UtcNow;
