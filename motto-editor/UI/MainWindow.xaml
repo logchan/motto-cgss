@@ -42,7 +42,10 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="{Binding Source={x:Static local:EditorStatus.Current}, Path=CurrentTime, Converter={StaticResource MsToStringConverter}}" Margin="20" FontSize="40"></TextBlock>
             <!--TODO: change to a ruler canvas-->
+            <!--
             <Slider Grid.Column="1" Name="MusicProgress" Margin="20 20 20 20" Minimum="0" Maximum="{Binding Source={x:Static local:EditorStatus.Current}, Path=MusicLength}" SmallChange="1" Value="{Binding Source={x:Static local:EditorStatus.Current}, Path=CurrentTime, Mode=TwoWay}"></Slider>
+            -->
+            <control:RulerCanvas Grid.Column="1" x:Name="RulerCanvas"></control:RulerCanvas>
             <!--TODO: change to better thing -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" MinWidth="200">
                 <TextBlock Text="{Binding Source={x:Static local:EditorStatus.Current},Path=CurrentBeat}" FontSize="20"></TextBlock>

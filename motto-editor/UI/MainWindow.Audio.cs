@@ -18,7 +18,7 @@ namespace motto_editor.UI
         {
             if (_musicWave == null) return;
 
-            MusicProgress.IsEnabled = false;
+            //MusicProgress.IsEnabled = false;
             _musicWave.CurrentTime = TimeSpan.FromMilliseconds(time);
             _musicOut?.Play();
             StartUpdater();
@@ -26,8 +26,8 @@ namespace motto_editor.UI
 
         private void PausePlaying()
         {
-            MusicProgress.IsEnabled = true;
-            _musicOut?.Pause();
+            //MusicProgress.IsEnabled = true;
+            _musicOut?.Stop();
             StopUpdater();
         }
     }

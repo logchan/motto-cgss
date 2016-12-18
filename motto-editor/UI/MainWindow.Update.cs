@@ -20,6 +20,7 @@ namespace motto_editor.UI
         {
             EditorCanvas.Compute();
             EditorCanvas.InvalidateVisual();
+            RulerCanvas.InvalidateVisual();
         }
 
         private void SetCurrentBeatFromTime()
@@ -108,6 +109,7 @@ namespace motto_editor.UI
                 EditorStatus.Current.CurrentTime = musicTime;
                 SetCurrentBeatFromTime();
 
+                RulerCanvas.Render();
                 EditorCanvas.ComputeAndRender();
 
                 var endTime = DateTime.UtcNow;

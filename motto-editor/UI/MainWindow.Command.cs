@@ -52,37 +52,33 @@ namespace motto_editor.UI
             var status = EditorStatus.Current;
             if (status.EditingMap == null) return;
 
-            if (status.CurrentSubBeat < 12)
+            var step = 48/RulerCanvas.BeatDivision;
+            var diff = status.CurrentSubBeat % step;
+            var beat = status.CurrentBeat;
+            var subBeat = status.CurrentSubBeat;
+
+            if (diff != 0)
             {
-                if (status.CurrentBeat == 0)
-                {
-                    if (status.CurrentSection == 0)
-                    {
-                        status.CurrentSubBeat = 0;
-                    }
-                    else
-                    {
-                        var currSection = status.EditingMap.Sections[status.CurrentSection];
-                        --status.CurrentSection;
-                        var prevSection = status.EditingMap.Sections[status.CurrentSection];
-                        int beat, subBeat;
-                        prevSection.TimeToBeats(currSection.StartTime, out beat, out subBeat);
-                        subBeat = subBeat/12*12;
-                        status.CurrentBeat = beat;
-                        status.CurrentSubBeat = subBeat;
-                    }
-                }
-                else
-                {
-                    status.CurrentSubBeat += 36;
-                    status.CurrentBeat -= 1;
-                }
+                subBeat -= diff;
             }
             else
             {
-                status.CurrentSubBeat -= 12;
+                subBeat -= step;
+                if (subBeat < 0)
+                {
+                    subBeat += 48;
+                    --beat;
+                }
+
+                if (beat < 0)
+                {
+                    // TODO: handle cross-section
+                    beat = subBeat = 0;
+                }
             }
 
+            status.CurrentBeat = beat;
+            status.CurrentSubBeat = subBeat;
             SetCurrentTimeFromBeat();
         }
 
