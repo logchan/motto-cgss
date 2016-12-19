@@ -56,6 +56,7 @@ namespace motto_editor.UI
                 _musicOut.Init(_musicWave);
 
                 // TODO: refactor
+                CurrentGame.NoteDelay = 1;
                 CurrentGame.ButtonHandled = new List<bool>();
                 CurrentGame.ButtonStates = new List<ButtonState>();
                 CurrentGame.NotesCount = bm.Notes.Count;
@@ -79,6 +80,7 @@ namespace motto_editor.UI
                     note.GameInit();
                 }
 
+                SetCurrentBeatFromTime();
                 Update();
             }
             catch (Exception ex)

@@ -47,10 +47,37 @@
             -->
             <control:RulerCanvas Grid.Column="1" x:Name="RulerCanvas"></control:RulerCanvas>
             <!--TODO: change to better thing -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal" MinWidth="200">
-                <TextBlock Text="{Binding Source={x:Static local:EditorStatus.Current},Path=CurrentBeat}" FontSize="20"></TextBlock>
-                <TextBlock FontSize="20">.</TextBlock>
-                <TextBlock Text="{Binding Source={x:Static local:EditorStatus.Current},Path=CurrentSubBeat}" FontSize="20"></TextBlock>
+            <StackPanel Grid.Column="2" Orientation="Vertical" MinWidth="200" Margin="8 8 8 8">
+                <StackPanel.Resources>
+                    <Style TargetType="ComboBox">
+                        <Setter Property="FontSize" Value="20"></Setter>
+                    </Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="FontSize" Value="20"></Setter>
+                    </Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Margin" Value="0 0 0 4"></Setter>
+                    </Style>
+                </StackPanel.Resources>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding Source={x:Static local:EditorStatus.Current},Path=CurrentBeat,StringFormat=000}" FontSize="20"></TextBlock>
+                    <TextBlock FontSize="20">.</TextBlock>
+                    <TextBlock Text="{Binding Source={x:Static local:EditorStatus.Current},Path=CurrentSubBeat,StringFormat=00}" FontSize="20"></TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="Beat division: "></TextBlock>
+                    <ComboBox Name="BeatDivisionCombo" SelectedIndex="1" SelectionChanged="BeatDivisionCombo_OnSelectionChanged">
+                        <ComboBox.Items>
+                            <ComboBoxItem>3</ComboBoxItem>
+                            <ComboBoxItem>4</ComboBoxItem>
+                            <ComboBoxItem>6</ComboBoxItem>
+                            <ComboBoxItem>8</ComboBoxItem>
+                            <ComboBoxItem>12</ComboBoxItem>
+                            <ComboBoxItem>24</ComboBoxItem>
+                            <ComboBoxItem>48</ComboBoxItem>
+                        </ComboBox.Items>
+                    </ComboBox>
+                </StackPanel>
             </StackPanel>
         </Grid>
         <control:EditorCanvas Grid.Row="2" x:Name="EditorCanvas">

@@ -50,14 +50,15 @@ namespace motto_editor.UI
         private void ExecuteCmdLeft(object sender, ExecutedRoutedEventArgs args)
         {
             var status = EditorStatus.Current;
-            if (status.EditingMap == null) return;
+            var bm = status.EditingMap;
+            if (bm == null) return;
 
             var step = 48/RulerCanvas.BeatDivision;
             var diff = status.CurrentSubBeat % step;
             var beat = status.CurrentBeat;
             var subBeat = status.CurrentSubBeat;
 
-            if (diff != 0)
+            if (diff > 0)
             {
                 subBeat -= diff;
             }
@@ -73,13 +74,25 @@ namespace motto_editor.UI
                 if (beat < 0)
                 {
                     // TODO: handle cross-section
-                    beat = subBeat = 0;
+                    if (status.CurrentSection > 0)
+                    {
+                        var oldSection = bm.Sections[status.CurrentSection];
+                        --status.CurrentSection;
+                        var newSection = bm.Sections[status.CurrentSection];
+                        newSection.TimeToBeats(oldSection.BeatToTime(beat, subBeat), out beat, out subBeat);
+                    }
                 }
             }
 
             status.CurrentBeat = beat;
             status.CurrentSubBeat = subBeat;
             SetCurrentTimeFromBeat();
+
+            if (status.CurrentTime < 0)
+            {
+                status.CurrentTime = 0;
+                SetCurrentBeatFromTime();
+            }
         }
 
         private void ExecuteCmdShiftLeft(object sender, ExecutedRoutedEventArgs args)
@@ -94,8 +107,9 @@ namespace motto_editor.UI
 
             var beat = status.CurrentBeat;
             var subBeat = status.CurrentSubBeat;
+            var step = 48 / RulerCanvas.BeatDivision;
 
-            subBeat += 12 - subBeat % 12;
+            subBeat += step - subBeat % step;
             if (subBeat > 47)
             {
                 beat += 1;

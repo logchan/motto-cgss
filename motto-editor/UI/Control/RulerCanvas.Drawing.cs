@@ -14,12 +14,14 @@ namespace motto_editor.UI.Control
         private readonly EventWaitHandle _renderHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
 
         private const double CurrentBeatLinePosition = 0.382;
-        private const int BeatLineThickness = 3;
-        private const int SubBeatLineThickness = 1;
+        private const int BeatLineThickness = 4;
+        private const int SubBeatLineThickness = 2;
 
-        private static readonly SolidColorBrush BackgroundFillBrush = Brushes.DarkBlue;
+        private static readonly SolidColorBrush BackgroundFillBrush = Brushes.Black;
         private static readonly Pen BeatLinePen = new Pen(Brushes.White, BeatLineThickness);
         private static readonly Pen SubBeatLinePen = new Pen(Brushes.Yellow, SubBeatLineThickness);
+        private static readonly Pen StartBeatLinePen = new Pen(Brushes.LightGray, BeatLineThickness);
+        private static readonly Pen NegativeBeatLinePen = new Pen(Brushes.LightGray, SubBeatLineThickness);
         private static readonly Pen CurrentBeatLinePen = new Pen(Brushes.Red, SubBeatLineThickness);
 
         public void Render()
@@ -41,6 +43,7 @@ namespace motto_editor.UI.Control
                 _renderHandle.Set();
                 return;
             }
+            var section = bm.Sections[status.CurrentSection];
                 
             var centerX = w*CurrentBeatLinePosition;
 
@@ -55,9 +58,9 @@ namespace motto_editor.UI.Control
             // TODO: handle cross-section
 
             // to the left...
-            while (x >= 0 && beat >= 0)
+            while (x >= 0 && section.BeatToTime(beat, subBeat) >= 0)
             {
-                dc.DrawLine(subBeat == 0 ? BeatLinePen : SubBeatLinePen, new Point(x, 0), new Point(x, h));
+                dc.DrawLine(beat >= 0 ? (subBeat == 0 ? BeatLinePen : SubBeatLinePen) : NegativeBeatLinePen, new Point(x, 0), new Point(x, h));
 
                 subBeat -= step;
                 if (subBeat < 0)
@@ -67,6 +70,15 @@ namespace motto_editor.UI.Control
                 }
 
                 x -= stepWidth;
+            }
+
+            // music start line
+            int zeroBeat, zeroSubBeat;
+            section.TimeToBeats(0, out zeroBeat, out zeroSubBeat);
+            x = centerX - stepWidth*(status.CurrentBeat*48+status.CurrentSubBeat-zeroBeat*48-zeroSubBeat)/step;
+            if (x >= 0)
+            {
+                dc.DrawLine(StartBeatLinePen, new Point(x, 0), new Point(x, h));
             }
 
             // to the right...
@@ -81,7 +93,7 @@ namespace motto_editor.UI.Control
                     ++beat;
                 }
 
-                dc.DrawLine(subBeat == 0 ? BeatLinePen : SubBeatLinePen, new Point(x, 0), new Point(x, h));
+                dc.DrawLine(beat >= 0 ? (subBeat == 0 ? BeatLinePen : SubBeatLinePen) : NegativeBeatLinePen, new Point(x, 0), new Point(x, h));
 
                 subBeat += step;
                 x += stepWidth;

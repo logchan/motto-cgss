@@ -228,7 +228,9 @@ namespace motto_cgss_core.Model
                             _scene.SetButtonHit(TouchPosition);
                             _scene.AddNoteResult(Id, timeDiff);
                         }
-                        Status = NoteStatus.Done;
+
+                        if (timeDiff < -CurrentGame.NoteDelay)
+                            Status = NoteStatus.Done;
                     }
                     else
                     {

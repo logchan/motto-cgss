@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using motto_cgss_core;
 using NAudio.Wave;
 
 namespace motto_editor.UI
@@ -18,7 +19,6 @@ namespace motto_editor.UI
         {
             if (_musicWave == null) return;
 
-            //MusicProgress.IsEnabled = false;
             _musicWave.CurrentTime = TimeSpan.FromMilliseconds(time);
             _musicOut?.Play();
             StartUpdater();
@@ -26,7 +26,6 @@ namespace motto_editor.UI
 
         private void PausePlaying()
         {
-            //MusicProgress.IsEnabled = true;
             _musicOut?.Stop();
             StopUpdater();
         }

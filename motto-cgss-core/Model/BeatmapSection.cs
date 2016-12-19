@@ -14,11 +14,16 @@
         {
             time -= StartTime;
 
-            // beat = (int)(time * Bpm / 60);
             subBeat = (int)(time * Bpm / 60 * 48);
 
             beat = subBeat / 48;
             subBeat %= 48;
+
+            if (subBeat < 0)
+            {
+                subBeat += 48;
+                --beat;
+            }
         }
     }
 }
