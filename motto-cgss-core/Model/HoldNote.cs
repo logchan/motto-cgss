@@ -175,7 +175,7 @@ namespace motto_cgss_core.Model
                 if (_endNoteShown)
                 {
                     if (_endHandle == 0)
-                        _endHandle = _scene.CreateNote(TextureId, Index);
+                        _endHandle = _scene.CreateNote(TextureId, Id);
                     _scene.SetNote(_endHandle, StartPosition, TouchPosition, _endT);
                 }
             }

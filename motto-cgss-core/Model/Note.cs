@@ -263,7 +263,7 @@ namespace motto_cgss_core.Model
             if (Status == NoteStatus.Shown)
             {
                 if (_noteHandle == 0)
-                    _noteHandle = _scene.CreateNote(TextureId, Index);
+                    _noteHandle = _scene.CreateNote(TextureId, Id);
                 _scene.SetNote(_noteHandle, StartPosition, TouchPosition, _t);
             }
             else

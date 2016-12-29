@@ -61,6 +61,7 @@
     </ApplicationDefinition>
     <Compile Include="UI\Control\EditorCanvas.Computation.cs" />
     <Compile Include="UI\Control\EditorCanvas.Drawing.cs" />
+    <Compile Include="UI\Control\EditorCanvas.Input.cs" />
     <Compile Include="UI\Control\EditorCanvas.ISceneController.cs" />
     <Compile Include="UI\Control\EditorCanvas.Objects.cs" />
     <Compile Include="UI\Control\EditorCanvas.Positions.cs" />

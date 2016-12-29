@@ -14,8 +14,14 @@ namespace motto_editor.UI.Control
         private static readonly Pen HitNotePen = new Pen(Brushes.Red, 2);
         private static readonly Pen HoldNotePen = new Pen(Brushes.DarkGoldenrod, 2);
         private static readonly Pen SwipeNotePen = new Pen(Brushes.Blue, 2);
+        private static readonly Pen SelectedNoteOverlayPen = new Pen(Brushes.White, 1);
         private static readonly Pen LinePen = new Pen(Brushes.Gray, 4);
         private static readonly Pen TrailPen = new Pen(Brushes.Gray, 2);
+
+        private static readonly Pen SelectedPathPen = new Pen(Brushes.Gray, 2)
+        {
+            DashStyle = DashStyles.Dash
+        };
 
         protected override void OnRender(DrawingContext dc)
         {
@@ -35,6 +41,37 @@ namespace motto_editor.UI.Control
             _renderHandle.Set();
         }
 
+        private void DrawPath(DrawingContext dc, int from, int to, double startT, double endT, Pen pen)
+        {
+            var start = (int)(startT * PathPointNumber);
+            if (start > PathPointNumber)
+                start = PathPointNumber;
+
+            var end = (int)(endT * PathPointNumber);
+            if (end > PathPointNumber)
+                end = PathPointNumber;
+
+            if (end <= start)
+                return;
+
+            var idx = (from * EditorStatus.Current.EditingMap.NumberOfButtons + to) * 2;
+            var listL = _pathPoints[idx];
+            var listR = _pathPoints[idx + 1];
+
+            var lstr = new StringBuilder();
+            var rstr = new StringBuilder();
+
+            lstr.Append($"M {listL[start].Item1},{listL[start].Item2} L ");
+            rstr.Append($"M {listR[start].Item1},{listR[start].Item2} L ");
+            for (int i = start + 1; i <= end; ++i)
+            {
+                lstr.Append($"{listL[i].Item1},{listL[i].Item2} ");
+                rstr.Append($"{listR[i].Item1},{listR[i].Item2} ");
+            }
+            dc.DrawGeometry(null, pen, Geometry.Parse(lstr.ToString()));
+            dc.DrawGeometry(null, pen, Geometry.Parse(rstr.ToString()));
+        }
+
         private void DrawLines(DrawingContext dc)
         {
             foreach (var line in _lines)
@@ -48,39 +85,16 @@ namespace motto_editor.UI.Control
                 }
                 else
                 {
-                    var start = (int)(line.PathStart*PathPointNumber);
-                    if (start > PathPointNumber)
-                        start = PathPointNumber;
-
-                    var end = (int)(line.PathEnd* PathPointNumber);
-                    if (end > PathPointNumber)
-                        end = PathPointNumber;
-
-                    if (end == start)
-                        continue;
-
-                    var idx = (line.PathFrom*EditorStatus.Current.EditingMap.NumberOfButtons + line.PathTo)*2;
-                    var listL = _pathPoints[idx];
-                    var listR = _pathPoints[idx + 1];
-
-                    var lstr = new StringBuilder();
-                    var rstr = new StringBuilder();
-
-                    lstr.Append($"M {listL[start].Item1},{listL[start].Item2} L ");
-                    rstr.Append($"M {listR[start].Item1},{listR[start].Item2} L ");
-                    for (int i = start + 1; i <= end; ++i)
-                    {
-                        lstr.Append($"{listL[i].Item1},{listL[i].Item2} ");
-                        rstr.Append($"{listR[i].Item1},{listR[i].Item2} ");
-                    }
-                    dc.DrawGeometry(null, TrailPen, Geometry.Parse(lstr.ToString()));
-                    dc.DrawGeometry(null, TrailPen, Geometry.Parse(rstr.ToString()));
+                    DrawPath(dc, line.PathFrom, line.PathTo, line.PathStart, line.PathEnd, TrailPen);
                 }
             }
         }
 
         private void DrawNotes(DrawingContext dc)
         {
+            var selectedId = EditorStatus.Current.SelectedNote?.Id ?? -1;
+            Note selectedNote = null;
+
             foreach (var note in _notes)
             {
                 if (note == null)
@@ -115,6 +129,19 @@ namespace motto_editor.UI.Control
                         dc.DrawEllipse(null, HoldNotePen, new Point(note.X, note.Y), r, r);
                         break;
                 }
+
+                if (selectedId == note.Id)
+                {
+                    selectedNote = note;
+                }
+            }
+
+            if (selectedNote != null)
+            {
+                var mapNote = EditorStatus.Current.SelectedNote;
+
+                DrawPath(dc, mapNote.StartPosition, mapNote.TouchPosition, 0.0, 1.0, SelectedPathPen);
+                dc.DrawEllipse(null, SelectedNoteOverlayPen, new Point(selectedNote.X, selectedNote.Y), selectedNote.Radius + 1, selectedNote.Radius + 1);
             }
         }
     }

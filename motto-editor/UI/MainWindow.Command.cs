@@ -47,6 +47,8 @@ namespace motto_editor.UI
                 StartPlaying(EditorStatus.Current.CurrentTime);
         }
 
+        // TODO: re-design how time changing shall be implemented :<
+
         private void ExecuteCmdLeft(object sender, ExecutedRoutedEventArgs args)
         {
             var status = EditorStatus.Current;
