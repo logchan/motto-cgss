@@ -4,7 +4,9 @@ An IDOL M@STER CINDERELLA GIRLS STARLIGHT STAGE (CGSS) implementation with more 
 
 [中文Readme](https://logu.co/motto-cgss/)
 
-> Unfortunately, this Git repository has been re-created due to some messed up solutions
+## Development Suspended
+
+**I will continue developing in July, 2017**
 
 ## Project Overview
 
