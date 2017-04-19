@@ -175,13 +175,14 @@ namespace motto_cgss_core.Model
                 if (_endNoteShown)
                 {
                     if (_endHandle == 0)
-                        _endHandle = _scene.CreateNote(TextureId, Index);
+                        _endHandle = _scene.CreateNote(TextureId, Id);
                     _scene.SetNote(_endHandle, StartPosition, TouchPosition, _endT);
                 }
             }
-            else if (Status == NoteStatus.Done)
+            else
             {
                 Destroy(ref _endHandle);
+                Destroy(ref _endLineHandle);
                 Destroy(ref _trailHandle);
             }
         }
@@ -266,7 +267,7 @@ namespace motto_cgss_core.Model
             int endTimeDiff = EndTime - CurrentGame.Time;
             if (endTimeDiff < CurrentGame.ApproachTime)
             {
-                _endT = MathHelper.Clamp(1 - endTimeDiff / CurrentGame.ApproachTime, 0, 1);
+                _endT = MathHelper.Clamp(1 - endTimeDiff/CurrentGame.ApproachTime, 0, 1);
 
                 if (EndId == 0)
                 {
@@ -294,6 +295,11 @@ namespace motto_cgss_core.Model
                 {
                     Status = NoteStatus.Done;
                 }
+            }
+            else
+            {
+                _endT = 0;
+                _endNoteShown = false;
             }
 
             _prevEndTimeDiff = endTimeDiff;

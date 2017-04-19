@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "motto-cgss-core", "motto-cg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "motto-conv", "motto-conv\motto-conv.csproj", "{7357864E-D035-4419-8967-26A2EEDF89A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "motto-editor", "motto-editor\motto-editor.csproj", "{369D8DD9-0680-42E6-9DF1-8CC6566A7EEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7357864E-D035-4419-8967-26A2EEDF89A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7357864E-D035-4419-8967-26A2EEDF89A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7357864E-D035-4419-8967-26A2EEDF89A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{369D8DD9-0680-42E6-9DF1-8CC6566A7EEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{369D8DD9-0680-42E6-9DF1-8CC6566A7EEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{369D8DD9-0680-42E6-9DF1-8CC6566A7EEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{369D8DD9-0680-42E6-9DF1-8CC6566A7EEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

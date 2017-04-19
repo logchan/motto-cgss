@@ -4,11 +4,8 @@ namespace motto_cgss_core.Model
 {
     public class BeatmapInfo
     {
-        public BeatmapInfo(string[] lines, string fileName, string path)
+        public void Parse(string[] lines)
         {
-            if (lines.Length < 1)
-                throw new Exception("Empty beatmap info file.");
-
             foreach (var line in lines)
             {
                 if (line.StartsWith("#"))
@@ -28,15 +25,10 @@ namespace motto_cgss_core.Model
                         break;
                 }
             }
-
-            Title = Title ?? fileName;
-            Artist = Artist ?? "";
-            FileName = fileName;
-            Path = path;
         }
-    
-        public string Title { get; set; }
-        public string Artist { get; set; }
+
+        public string Title { get; set; } = "New beatmap";
+        public string Artist { get; set; } = "Unknown";
 
         public string Path { get; set; }
         public string FileName { get; set; }
